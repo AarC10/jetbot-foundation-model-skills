@@ -1,0 +1,47 @@
+{
+  "name": "ROS2 Humble (Docker Compose)",
+  "dockerComposeFile": [
+    "../docker-compose.yml"
+  ],
+  "service": "ros",
+  "workspaceFolder": "/workspace",
+
+  "remoteUser": "rosdev",
+  "overrideCommand": false,
+
+  "shutdownAction": "stopCompose",
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-vscode.cpptools",
+        "ms-vscode.cmake-tools",
+        "llvm-vs-code-extensions.vscode-clangd",
+        "twxs.cmake",
+        "redhat.vscode-yaml"
+      ],
+      "settings": {
+        "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
+        "clangd.arguments": [
+          "--compile-commands-dir=/workspace/build"
+        ]
+      }
+    }
+  },
+
+  "containerEnv": {
+    "ROS_DISTRO": "humble",
+    "COLCON_WS": "/workspace"
+  },
+
+  "dockerComposeFile": [
+    "../docker-compose.yml",
+    "docker-compose.override.yml"
+  ],
+
+
+  "postCreateCommand": "bash -lc 'source /opt/ros/humble/setup.bash && rosdep update && rosdep install --from-paths src -i -y || true'",
+
+  "postStartCommand": "bash -lc 'source /opt/ros/humble/setup.bash && (test -f install/setup.bash && source install/setup.bash || true)'"
+}
+

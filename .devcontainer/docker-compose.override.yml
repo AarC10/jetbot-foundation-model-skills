@@ -1,0 +1,6 @@
+services:
+  ros:
+    environment:
+      - LOCAL_UID=${UID}
+      - LOCAL_GID=${GID}
+      - LOCAL_USER=rosdev
