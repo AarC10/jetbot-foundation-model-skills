@@ -12,6 +12,37 @@ find_package(sensor_msgs REQUIRED)
 find_package(image_transport REQUIRED)
 find_package(cv_bridge REQUIRED)
 
+
+add_executable(camera_handler_node
+  src/CameraHandlerNode.cpp
+  src/main.cpp 
+)
+
+ament_target_dependencies(camera_handler_node
+  rclcpp
+  std_msgs
+  builtin_interfaces
+  sensor_msgs
+)
+
+target_include_directories(camera_handler_node PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
+)
+
+install(TARGETS camera_handler_node
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+install(DIRECTORY include/
+  DESTINATION include/
+)
+
+# install(
+#   DIRECTORY launch
+#   DESTINATION share/${PROJECT_NAME}
+# )
+
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   # the following line skips the linter which checks for copyrights

@@ -19,19 +19,18 @@ add_executable(motor_driver_node
 )
 
 ament_target_dependencies(motor_driver_node
-  arm_msgs
   rclcpp
   std_msgs
   builtin_interfaces
   sensor_msgs
 )
 
-target_include_directories(arm_commander_node PUBLIC
+target_include_directories(motor_driver_node PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>
 )
 
-install(TARGETS arm_commander_node
+install(TARGETS motor_driver_node
   DESTINATION lib/${PROJECT_NAME}
 )
 
@@ -39,10 +38,10 @@ install(DIRECTORY include/
   DESTINATION include/
 )
 
-install(
-  DIRECTORY launch
-  DESTINATION share/${PROJECT_NAME}
-)
+# install(
+#   DIRECTORY launch
+#   DESTINATION share/${PROJECT_NAME}
+# )
 
 
 if(BUILD_TESTING)
