@@ -28,7 +28,22 @@ bool Pca9865::setPwm(int channel, int on, int off) { return true; }
 
 bool Pca9865::setAllPwm(int on, int off) { return true; }
 
-bool Pca9865::reset() { return true; }
+bool Pca9865::reset() {
+  if (!initialized) {
+    return false;
+  }
+
+  ioctl(fd, I2C_SLAVE, 0x00); // General Call Address
+  uint8_t buf[2] = {0x00, 0x06};
+
+  if (write(fd, buf, 2) != 2) {
+    RCLCPP_ERROR(rclcpp::get_logger("Pca9865"),
+                 "Failed to write SWRST to I2C general call address");
+    return false;
+  }
+
+  return true;
+}
 
 bool Pca9865::readI2cRegister(uint8_t reg, uint8_t &value) {
   ioctl(fd, I2C_SLAVE, addr);
