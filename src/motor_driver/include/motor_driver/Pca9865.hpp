@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <stdint.h>
 #include <stddef.h>
 
@@ -7,19 +8,20 @@ class Pca9865 {
 public:
     enum Registers {
         ModeOne = 0x00,
-        ModeTwo,
-        SUBADR1,
-        SUBADR2,
-        SUBADR3,
-        PRESCALE,
-        LED0_ON_L,
-        LED0_ON_H,
-        LED0_OFF_L,
-        LED0_OFF_H,
-        ALL_LED_ON_L,
-        ALL_LED_ON_H,
-        ALL_LED_OFF_L,
-        ALL_LED_OFF_H,
+        ModeTwo = 0x01,
+        SUBADR1 = 0x02,
+        SUBADR2 = 0x03,
+        SUBADR3 = 0x04,
+        ALLCALLADR = 0x05,
+        LEDX_ON_L = 0x06,
+        LEDX_ON_H = 0x07,
+        LEDX_OFF_L = 0x08,
+        LEDX_OFF_H = 0x09,
+        ALL_LED_ON_L = 0xFA,
+        ALL_LED_ON_H = 0xFB,
+        ALL_LED_OFF_L = 0xFC,
+        ALL_LED_OFF_H = 0xFD,
+        PRESCALE = 0xFE,
     };
 
     enum BitMasks {
@@ -30,13 +32,18 @@ public:
         OUTDRV = 0x04,
     };
 
+    static constexpr uint8_t PRESCALE_MIN = 0x03;
+    static constexpr uint8_t PRESCALE_MAX = 0xFF;
+    static constexpr uint16_t PWM_RESOLUTION = 4096;
+    static constexpr uint32_t OSCILLATOR_FREQUENCY = 25'000'000;
+
     Pca9865();
 
-    bool setPwmFrequency(int freqHz);
+    bool setPwmFrequency(uint32_t freqHz);
 
-    bool setPwm(int channel, int on, int off);
+    bool setPwm(uint8_t channel, uint16_t on, uint16_t off);
 
-    bool setAllPwm(int on, int off);
+    bool setAllPwm(uint16_t on, uint16_t off);
 
     bool reset();
 

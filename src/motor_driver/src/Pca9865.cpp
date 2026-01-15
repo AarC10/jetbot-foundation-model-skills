@@ -22,18 +22,22 @@ Pca9865::Pca9865() : addr(0x40), fd(-1) {
   initialized = true;
 }
 
-bool Pca9865::setPwmFrequency(int freqHz) { return true; }
+bool Pca9865::setPwmFrequency(uint32_t freqHz) { return true; }
 
-bool Pca9865::setPwm(int channel, int on, int off) { return true; }
+bool Pca9865::setPwm(uint8_t channel, uint16_t on, uint16_t off) {
+  return true;
+}
 
-bool Pca9865::setAllPwm(int on, int off) { return true; }
+bool Pca9865::setAllPwm(uint16_t on, uint16_t off) {
+    return true;
+}
 
 bool Pca9865::reset() {
   if (!initialized) {
     return false;
   }
 
-  ioctl(fd, I2C_SLAVE, 0x00); // General Call Address
+  ioctl(fd, I2C_SLAVE, 0x00);
   uint8_t buf[2] = {0x00, 0x06};
 
   if (write(fd, buf, 2) != 2) {
