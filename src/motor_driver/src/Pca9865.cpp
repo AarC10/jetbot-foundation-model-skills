@@ -22,14 +22,32 @@ Pca9865::Pca9865() : addr(0x40), fd(-1) {
   initialized = true;
 }
 
-bool Pca9865::setPwmFrequency(uint32_t freqHz) { return true; }
+bool Pca9865::setPwmFrequency(uint32_t freqHz) {
+  uint32_t prescaler = OSCILLATOR_FREQUENCY / (PWM_RESOLUTION * freqHz) - 1;
+  if (prescaler < PRESCALE_MIN || prescaler > PRESCALE_MAX) {
+    RCLCPP_ERROR(rclcpp::get_logger("Pca9865"),
+                 "Frequency out of range for PCA9865");
+    return false;
+  }
 
-bool Pca9865::setPwm(uint8_t channel, uint16_t on, uint16_t off) {
+  RCLCPP_DEBUG(rclcpp::get_logger("Pca9865"),
+               "Setting PCA9865 prescaler to %u for %u Hz", prescaler, freqHz);
+
   return true;
 }
 
+bool Pca9865::setPwm(uint8_t channel, uint16_t on, uint16_t off) {
+  return writeI2cRegister(LEDX_ON_L + 4 * channel, on & 0xFF) &&
+         writeI2cRegister(LEDX_ON_H + 4 * channel, (on >> 8) & 0x0F) &&
+         writeI2cRegister(LEDX_OFF_L + 4 * channel, off & 0xFF) &&
+         writeI2cRegister(LEDX_OFF_H + 4 * channel, (off >> 8) & 0x0F);
+}
+
 bool Pca9865::setAllPwm(uint16_t on, uint16_t off) {
-    return true;
+    return writeI2cRegister(ALL_LED_ON_L, on & 0xFF) &&
+           writeI2cRegister(ALL_LED_ON_H, (on >> 8) & 0x0F) &&
+           writeI2cRegister(ALL_LED_OFF_L, off & 0xFF) &&
+           writeI2cRegister(ALL_LED_OFF_H, (off >> 8) & 0x0F);
 }
 
 bool Pca9865::reset() {
