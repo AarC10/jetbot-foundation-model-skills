@@ -1,4 +1,6 @@
+#pragma once
 
+#include 
 
 class Pca9865 {
 public:
