@@ -1,6 +1,7 @@
 #pragma once
 
 
+#include "motor_driver/Tb6612.hpp"
 #include <rclcpp/rclcpp.hpp>
 #include <geometry_msgs/msg/twist.hpp>
 #include <motor_driver/Pca9685.hpp>
@@ -13,6 +14,7 @@ public:
 
 private:
     Pca9685 pca9685;
+    Tb6612 tb6612;
 
     rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr cmdVelSub;
     // TODO: Custom message

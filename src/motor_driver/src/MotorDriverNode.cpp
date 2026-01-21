@@ -36,12 +36,22 @@ void MotorDriverNode::cmdVelCallback(const geometry_msgs::msg::Twist::SharedPtr 
     if (!pca9685.setPwm(leftMotorChannel, 0, leftPwm)) {
         RCLCPP_ERROR(this->get_logger(), "Failed to set PWM for left motor");
     } else {
+        if (leftPwm == 0) {
+            tb6612.setMotorAForward(false);
+            tb6612.setMotorABackward(false);
+        } else if (leftClamped > 0) {
+            tb6612.setMotorAForward(true);
+            tb6612.setMotorABackward(false);
+        } else {
+            tb6612.setMotorAForward(false);
+            tb6612.setMotorABackward(true);
+        }
     }
 
     if (!pca9685.setPwm(rightMotorChannel, 0, rightPwm)) {
         RCLCPP_ERROR(this->get_logger(), "Failed to set PWM for right motor");
     } else {
-        
+
     }
 
 
