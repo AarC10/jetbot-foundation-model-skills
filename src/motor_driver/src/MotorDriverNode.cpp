@@ -14,43 +14,54 @@ MotorDriverNode::MotorDriverNode() : Node("motor_driver_node") {
 MotorDriverNode::~MotorDriverNode() {}
 
 void MotorDriverNode::cmdVelCallback(const geometry_msgs::msg::Twist::SharedPtr msg) {
-    static constexpr float MAX_SPEED = 1.0; // TODO: Get the actual number
+    static constexpr double MAX_SPEED = 1.0;
+    static constexpr double DEAD_BAND = 1e-3;
 
-    auto pwmFromMag = [&](double v) -> uint16_t {
-        double mag = std::min(1.0, std::abs(v) / MAX_SPEED);
-        return static_cast<uint16_t>(mag * MAX_PWM);
+    auto clamp = [&](double v) -> double { return std::max(-MAX_SPEED, std::min(MAX_SPEED, v)); };
+
+    auto pwmFromMag = [&](double velocity) -> uint16_t {
+        double mag = std::min(1.0, std::abs(velocity) / MAX_SPEED);
+        return static_cast<uint16_t>(std::lround(mag * static_cast<double>(MAX_PWM)));
+    };
+
+    auto dirFrom = [&](double v) -> MotorDirection {
+        if (std::abs(v) <= DEAD_BAND) {
+            return STOP;
+            // Alternative if motors should coast instead of stop
+            // return COAST;
+        }
+        return (v > 0.0) ? FORWARD : BACKWARD;
     };
 
     const double linear = msg->linear.x;
     const double angular = msg->angular.z;
 
-    const double leftSpeed = linear - angular;
-    const double rightSpeed = linear + angular;
+    // TODO: Convert m/s to normalized based on 65 mm wheel radius after figuring out max speed
+    const double leftCmd = clamp(linear - angular);
+    const double rightCmd = clamp(linear + angular);
 
-    const double leftClamped =
-        std::max(-static_cast<double>(MAX_SPEED), std::min(static_cast<double>(MAX_SPEED), leftSpeed));
-    const double rightClamped =
-        std::max(-static_cast<double>(MAX_SPEED), std::min(static_cast<double>(MAX_SPEED), rightSpeed));
+    const MotorDirection leftDir = dirFrom(leftCmd);
+    const MotorDirection rightDir = dirFrom(rightCmd);
 
-    const uint16_t leftPwm = pwmFromMag(leftClamped);
-    const uint16_t rightPwm = pwmFromMag(rightClamped);
+    const uint16_t leftPwm = (leftDir == STOP || leftDir == COAST) ? 0 : pwmFromMag(leftCmd);
+    const uint16_t rightPwm = (rightDir == STOP || rightDir == COAST) ? 0 : pwmFromMag(rightCmd);
 
-    if (!pca9685.setPwm(leftMotor.pwm, 0, leftPwm)) {
-        RCLCPP_ERROR(this->get_logger(), "Failed to set PWM for left motor");
-    } else if (!setDirection(leftClamped > 0 ? FORWARD : leftClamped < 0 ? BACKWARD : STOP, leftMotor)) {
+    if (!setDirection(leftDir, leftMotor)) {
         RCLCPP_ERROR(this->get_logger(), "Failed to set direction for left motor");
+    } else if (!pca9685.setPwm(leftMotor.pwm, 0, leftPwm)) {
+        RCLCPP_ERROR(this->get_logger(), "Failed to set PWM for left motor");
     }
 
-    if (!pca9685.setPwm(rightMotor.pwm, 0, rightPwm)) {
-        RCLCPP_ERROR(this->get_logger(), "Failed to set PWM for right motor");
-    } else if (!setDirection(rightClamped > 0 ? FORWARD : rightClamped < 0 ? BACKWARD : STOP, rightMotor)) {
+    if (!setDirection(rightDir, rightMotor)) {
         RCLCPP_ERROR(this->get_logger(), "Failed to set direction for right motor");
+    } else if (!pca9685.setPwm(rightMotor.pwm, 0, rightPwm)) {
+        RCLCPP_ERROR(this->get_logger(), "Failed to set PWM for right motor");
     }
 
-    // Publish motor status
-    auto statusMsg = geometry_msgs::msg::Twist();
-    statusMsg.linear.x = leftSpeed;
-    statusMsg.angular.z = rightSpeed;
+    // Pub actual motor commands
+    geometry_msgs::msg::Twist statusMsg;
+    statusMsg.linear.x = leftCmd;
+    statusMsg.angular.z = rightCmd;
     motorStatusPub->publish(statusMsg);
 }
 
