@@ -18,7 +18,6 @@ MotorDriverNode::~MotorDriverNode() {}
 void MotorDriverNode::cmdVelCallback(const geometry_msgs::msg::Twist::SharedPtr msg) {
     // This is a diff drive robot, so we convert linear and angular velocity to left and right motor speeds
     static constexpr float MAX_SPEED = 1.0; // TODO: Get the actual number
-    static constexpr uint16_t MAX_PWM = 4095;
 
 
     const double linear = msg->linear.x;
@@ -51,5 +50,30 @@ void MotorDriverNode::cmdVelCallback(const geometry_msgs::msg::Twist::SharedPtr 
     statusMsg.linear.x = leftSpeed;
     statusMsg.angular.z = rightSpeed;
     motorStatusPub->publish(statusMsg);
+}
+
+bool MotorDriverNode::setDirection(const MotorDirection direction, const MotorChannels motor) {
+    auto it = motorDirectionMap.find(direction);
+    if (it == motorDirectionMap.end()) {
+        RCLCPP_ERROR(this->get_logger(), "Invalid motor direction");
+        return false;
+    }
+
+    const MotorDirectionValues& values = it->second;
+
+    const int channelIn1 = motor.analogIn1;
+    const int channelIn2 = motor.analogIn2;
+
+    if (!pca9685.setPwm(channelIn1, 0, values.in1)) {
+        RCLCPP_ERROR(this->get_logger(), "Failed to set IN1 PWM for motor %d", motor.analogIn1);
+        return false;
+    }
+
+    if (!pca9685.setPwm(channelIn2, 0, values.in2)) {
+        RCLCPP_ERROR(this->get_logger(), "Failed to set IN2 PWM for motor %d", motor.analogIn2);
+        return false;
+    }
+
+    return true;
 }
 
