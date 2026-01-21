@@ -11,13 +11,11 @@
 Pca9685::Pca9685() : addr(0x40), fd(-1) {
     fd = open("/dev/i2c-1", O_RDWR);
     if (fd < 0) {
-        RCLCPP_ERROR(rclcpp::get_logger("Pca9685"),
-                     "Failed to open I2C device");
+        RCLCPP_ERROR(rclcpp::get_logger("Pca9685"), "Failed to open I2C device");
         return;
     }
     if (ioctl(fd, I2C_SLAVE, addr) < 0) {
-        RCLCPP_ERROR(rclcpp::get_logger("Pca9685"),
-                     "Failed to set I2C address");
+        RCLCPP_ERROR(rclcpp::get_logger("Pca9685"), "Failed to set I2C address");
         return;
     }
 
@@ -43,14 +41,11 @@ Pca9685::~Pca9685() {
 bool Pca9685::setPwmFrequency(uint32_t freqHz) {
     uint32_t prescaler = OSCILLATOR_FREQUENCY / (PWM_RESOLUTION * freqHz) - 1;
     if (prescaler < PRESCALE_MIN || prescaler > PRESCALE_MAX) {
-        RCLCPP_ERROR(rclcpp::get_logger("Pca9685"),
-                     "Frequency out of range for PCA9685");
+        RCLCPP_ERROR(rclcpp::get_logger("Pca9685"), "Frequency out of range for PCA9685");
         return false;
     }
 
-    RCLCPP_DEBUG(rclcpp::get_logger("Pca9685"),
-                 "Setting PCA9685 prescaler to %u for %u Hz", prescaler,
-                 freqHz);
+    RCLCPP_DEBUG(rclcpp::get_logger("Pca9685"), "Setting PCA9685 prescaler to %u for %u Hz", prescaler, freqHz);
 
     // Read MODE1
     uint8_t mode1;
@@ -84,10 +79,8 @@ bool Pca9685::setPwm(uint8_t channel, uint16_t on, uint16_t off) {
 }
 
 bool Pca9685::setAllPwm(uint16_t on, uint16_t off) {
-    return writeI2cRegister(ALL_LED_ON_L, on & 0xFF) &&
-           writeI2cRegister(ALL_LED_ON_H, (on >> 8) & 0x0F) &&
-           writeI2cRegister(ALL_LED_OFF_L, off & 0xFF) &&
-           writeI2cRegister(ALL_LED_OFF_H, (off >> 8) & 0x0F);
+    return writeI2cRegister(ALL_LED_ON_L, on & 0xFF) && writeI2cRegister(ALL_LED_ON_H, (on >> 8) & 0x0F) &&
+           writeI2cRegister(ALL_LED_OFF_L, off & 0xFF) && writeI2cRegister(ALL_LED_OFF_H, (off >> 8) & 0x0F);
 }
 
 bool Pca9685::reset() {
@@ -100,8 +93,7 @@ bool Pca9685::reset() {
     uint8_t buf[2] = {0x00, 0x06};
 
     if (write(fd, buf, 2) != 2) {
-        RCLCPP_ERROR(rclcpp::get_logger("Pca9685"),
-                     "Failed to write SWRST to I2C general call address");
+        RCLCPP_ERROR(rclcpp::get_logger("Pca9685"), "Failed to write SWRST to I2C general call address");
         return false;
     }
 
@@ -115,14 +107,12 @@ bool Pca9685::readI2cRegister(uint8_t reg, uint8_t &value) {
     uint8_t buf[1] = {reg};
 
     if (write(fd, buf, 1) != 1) {
-        RCLCPP_ERROR(rclcpp::get_logger("Pca9685"),
-                     "Failed to write to I2C register");
+        RCLCPP_ERROR(rclcpp::get_logger("Pca9685"), "Failed to write to I2C register");
         return false;
     }
 
     if (read(fd, &value, 1) != 1) {
-        RCLCPP_ERROR(rclcpp::get_logger("Pca9685"),
-                     "Failed to read from I2C register");
+        RCLCPP_ERROR(rclcpp::get_logger("Pca9685"), "Failed to read from I2C register");
         return false;
     }
 
@@ -134,8 +124,7 @@ bool Pca9685::writeI2cRegister(uint8_t reg, uint8_t value) {
     uint8_t buf[2] = {reg, value};
 
     if (write(fd, buf, 2) != 2) {
-        RCLCPP_ERROR(rclcpp::get_logger("Pca9685"),
-                     "Failed to write to I2C register");
+        RCLCPP_ERROR(rclcpp::get_logger("Pca9685"), "Failed to write to I2C register");
         return false;
     }
 
@@ -145,30 +134,26 @@ bool Pca9685::writeI2cRegister(uint8_t reg, uint8_t value) {
 bool Pca9685::readI2cRegisters(uint8_t reg, uint8_t *buffer, size_t length) {
     ioctl(fd, I2C_SLAVE, addr);
     if (write(fd, &reg, 1) != 1) {
-        RCLCPP_ERROR(rclcpp::get_logger("Pca9685"),
-                     "Failed to write to I2C register");
+        RCLCPP_ERROR(rclcpp::get_logger("Pca9685"), "Failed to write to I2C register");
         return false;
     }
 
     if (read(fd, buffer, length) != (ssize_t)length) {
-        RCLCPP_ERROR(rclcpp::get_logger("Pca9685"),
-                     "Failed to read from I2C registers");
+        RCLCPP_ERROR(rclcpp::get_logger("Pca9685"), "Failed to read from I2C registers");
         return false;
     }
 
     return true;
 }
 
-bool Pca9685::writeI2cRegisters(uint8_t reg, const uint8_t *buffer,
-                                size_t length) {
+bool Pca9685::writeI2cRegisters(uint8_t reg, const uint8_t *buffer, size_t length) {
     ioctl(fd, I2C_SLAVE, addr);
     uint8_t buf[length + 1];
     buf[0] = reg;
     memcpy(&buf[1], buffer, length);
 
     if (write(fd, buf, length + 1) != (ssize_t)(length + 1)) {
-        RCLCPP_ERROR(rclcpp::get_logger("Pca9685"),
-                     "Failed to write to I2C registers");
+        RCLCPP_ERROR(rclcpp::get_logger("Pca9685"), "Failed to write to I2C registers");
         return false;
     }
 

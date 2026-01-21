@@ -27,11 +27,10 @@ class MotorDriverNode : public rclcpp::Node {
         uint16_t in2;
     };
 
-    const std::map<MotorDirection, MotorDirectionValues> motorDirectionMap = {
-        {FORWARD, {MAX_PWM, MIN_PWM}},
-        {BACKWARD, {MIN_PWM, MAX_PWM}},
-        {COAST, {MIN_PWM, MIN_PWM}},
-        {STOP, {MAX_PWM, MAX_PWM}}};
+    const std::map<MotorDirection, MotorDirectionValues> motorDirectionMap = {{FORWARD, {MAX_PWM, MIN_PWM}},
+                                                                              {BACKWARD, {MIN_PWM, MAX_PWM}},
+                                                                              {COAST, {MIN_PWM, MIN_PWM}},
+                                                                              {STOP, {MAX_PWM, MAX_PWM}}};
 
     Pca9685 pca9685;
 
@@ -46,6 +45,5 @@ class MotorDriverNode : public rclcpp::Node {
 
     void cmdVelCallback(const geometry_msgs::msg::Twist::SharedPtr msg);
 
-    bool setDirection(const MotorDirection direction,
-                      const MotorChannels &motor);
+    bool setDirection(const MotorDirection direction, const MotorChannels &motor);
 };
