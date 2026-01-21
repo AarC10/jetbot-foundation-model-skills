@@ -21,6 +21,7 @@ add_executable(jetbot_motor_node
 ament_target_dependencies(jetbot_motor_node
   rclcpp
   std_msgs
+  geometry_msgs
   builtin_interfaces
   sensor_msgs
 )
