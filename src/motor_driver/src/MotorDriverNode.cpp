@@ -1,7 +1,7 @@
 #include <motor_driver/MotorDriverNode.hpp>
 
 MotorDriverNode::MotorDriverNode()
-    : Node("motor_driver_node"), leftMotor(0), rightMotor(1) {
+    : Node("motor_driver_node") {
   if (!pca9685.setPwmFrequency(0)) {
     RCLCPP_ERROR(this->get_logger(), "Failed to set PWM frequency on PCA9685");
   }
