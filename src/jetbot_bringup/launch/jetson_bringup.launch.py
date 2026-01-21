@@ -22,9 +22,9 @@ def generate_launch_description() -> LaunchDescription:
         ),
 
         Node(
-            package="motor_driver",
-            executable="motor_driver_node",
-            name="motor_driver",
+            package="jetbot_motors",
+            executable="jetbot_motors_node",
+            name="jetbot_motors",
             output="screen",
             parameters=[
             ],
