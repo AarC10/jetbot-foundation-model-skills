@@ -11,8 +11,16 @@ class MotorDriverNode : public rclcpp::Node {
     ~MotorDriverNode();
 
   private:
+    static constexpr double WHEEL_RADIUS_M = 0.065; // 65 mm
+    static constexpr double TRACK_WIDTH_M = 0.1; // TODO: Measure Jetbot 3d print
+
     static constexpr uint16_t MIN_PWM = 0;
     static constexpr uint16_t MAX_PWM = 4095;
+
+    struct WheelLinear {
+        double leftMps;
+        double rightMps;
+    };
 
     enum MotorDirection { FORWARD, BACKWARD, COAST, STOP };
 
@@ -46,4 +54,12 @@ class MotorDriverNode : public rclcpp::Node {
     void cmdVelCallback(const geometry_msgs::msg::Twist::SharedPtr msg);
 
     bool setDirection(const MotorDirection direction, const MotorChannels &motor);
+
+    WheelLinear computeWheelSpeeds(double velMps, double omegaRps) {
+        const double half = TRACK_WIDTH_M * 0.5;
+        return {
+            .leftMps = velMps - (omegaRps * half),
+            .rightMps = velMps + (omegaRps * half)
+        };
+    }
 };
