@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <stddef.h>
 
-class Pca9865 {
+class Pca9685 {
 public:
     enum Registers {
         ModeOne = 0x00,
@@ -37,9 +37,9 @@ public:
     static constexpr uint16_t PWM_RESOLUTION = 4096;
     static constexpr uint32_t OSCILLATOR_FREQUENCY = 25'000'000;
 
-    Pca9865();
+    Pca9685();
     
-    ~Pca9865();
+    ~Pca9685();
 
     bool setPwmFrequency(uint32_t freqHz);
 
