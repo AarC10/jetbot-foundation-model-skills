@@ -13,7 +13,7 @@ find_package(geometry_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 
 add_executable(motor_driver_node 
-  src/Pca9865.cpp
+  src/Pca9685.cpp
   src/MotorDriverNode.cpp
   src/main.cpp 
 )

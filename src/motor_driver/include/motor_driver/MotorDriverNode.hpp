@@ -3,7 +3,7 @@
 
 #include <rclcpp/rclcpp.hpp>
 #include <geometry_msgs/msg/twist.hpp>
-#include <motor_driver/Pca9865.hpp>
+#include <motor_driver/Pca9685.hpp>
 
 class MotorDriverNode : public rclcpp::Node {
 public:
@@ -12,7 +12,7 @@ public:
     ~MotorDriverNode();
 
 private:
-    Pca9865 pca9865;
+    Pca9685 pca9685;
 
     rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr cmdVelSub;
     // TODO: Custom message
