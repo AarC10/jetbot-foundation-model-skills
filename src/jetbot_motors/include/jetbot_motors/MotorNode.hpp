@@ -8,10 +8,10 @@
 #include <jetbot_motors/Pca9685.hpp>
 #include <rclcpp/rclcpp.hpp>
 
-class MotorDriverNode : public rclcpp::Node {
+class MotorNode : public rclcpp::Node {
   public:
-    MotorDriverNode();
-    ~MotorDriverNode();
+    MotorNode();
+    ~MotorNode();
 
   private:
     static constexpr double WHEEL_RADIUS_M = 0.065; // 65 mm

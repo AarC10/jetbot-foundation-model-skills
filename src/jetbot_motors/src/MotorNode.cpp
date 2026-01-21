@@ -1,22 +1,22 @@
-#include "jetbot_motors/MotorDriverNode.hpp"
+#include "jetbot_motors/MotorNode.hpp"
 
 #include <functional>
 
-MotorDriverNode::MotorDriverNode() : Node("jetbot_motors_node") {
+MotorNode::MotorNode() : Node("jetbot_motors_node") {
     // 1600 khz similar to Motorhat driver from Adafruit
     if (!pca9685.setPwmFrequency(1600)) {
         RCLCPP_ERROR(this->get_logger(), "Failed to set PWM frequency on PCA9685");
     }
 
     cmdVelSub = this->create_subscription<geometry_msgs::msg::Twist>(
-        "cmd_vel", 10, std::bind(&MotorDriverNode::cmdVelCallback, this, std::placeholders::_1));
+        "cmd_vel", 10, std::bind(&MotorNode::cmdVelCallback, this, std::placeholders::_1));
 
     motorStatusPub = this->create_publisher<geometry_msgs::msg::Twist>("motor_status", 10);
 }
 
-MotorDriverNode::~MotorDriverNode() = default;
+MotorNode::~MotorNode() = default;
 
-void MotorDriverNode::cmdVelCallback(const geometry_msgs::msg::Twist::SharedPtr msg) {
+void MotorNode::cmdVelCallback(const geometry_msgs::msg::Twist::SharedPtr msg) {
     const double velMps = msg->linear.x;
     const double omegaRps = msg->angular.z;
 
@@ -48,7 +48,7 @@ void MotorDriverNode::cmdVelCallback(const geometry_msgs::msg::Twist::SharedPtr 
     motorStatusPub->publish(status);
 }
 
-bool MotorDriverNode::setDirection(MotorDirection direction, const MotorChannels &motor) {
+bool MotorNode::setDirection(MotorDirection direction, const MotorChannels &motor) {
     const auto it = motorDirectionMap.find(direction);
     if (it == motorDirectionMap.end()) {
         RCLCPP_ERROR(this->get_logger(), "Invalid motor direction");
