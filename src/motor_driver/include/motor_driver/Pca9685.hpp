@@ -47,9 +47,14 @@ class Pca9685 {
 
     bool setAllPwm(uint16_t on, uint16_t off);
 
+    bool setPin(uint8_t channel, bool high);
+
     bool reset();
 
   private:
+    static constexpr uint16_t FULL_OFF = 0;
+    static constexpr uint16_t FULL_ON = 4095;
+
     uint8_t addr;
     int fd;
     bool initialized = false;

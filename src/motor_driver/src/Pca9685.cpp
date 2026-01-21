@@ -83,6 +83,14 @@ bool Pca9685::setAllPwm(uint16_t on, uint16_t off) {
            writeI2cRegister(ALL_LED_OFF_L, off & 0xFF) && writeI2cRegister(ALL_LED_OFF_H, (off >> 8) & 0x0F);
 }
 
+bool Pca9685::setPin(uint8_t channel, bool high) {
+    if (high) {
+        return setPwm(channel, FULL_ON, FULL_OFF);
+    } else {
+        return setPwm(channel, FULL_OFF, FULL_ON);
+    }
+}
+
 bool Pca9685::reset() {
     if (fd < 0) {
         RCLCPP_ERROR(rclcpp::get_logger("Pca9685"), "I2C device not opened");
