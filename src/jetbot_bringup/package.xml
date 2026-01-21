@@ -2,22 +2,15 @@
 <package format="3">
   <name>jetbot_bringup</name>
   <version>1.0.0</version>
-  <description>System bringup for Jetbot<description>
-  <maintainer email="todo@example.com">TODO</maintainer>
+  <description>System bringup for Jetbot</description>
+  <maintainer email="amc9897@rit.edu">Aaron Chan</maintainer>
   <license>TODO</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
   <exec_depend>launch</exec_depend>
   <exec_depend>launch_ros</exec_depend>
-  <exec_depend>arm_commander</exec_depend>
-  <exec_depend>status_accumulator</exec_depend>
-  <exec_depend>sensor_reader</exec_depend>
-  <exec_depend>nmea_listener</exec_depend>
-  <exec_depend>radio_transceiver</exec_depend>
-  <exec_depend>image_handler</exec_depend>
-  <exec_depend>camera_ros</exec_depend>
-  <exec_depend>stm_interface</exec_depend>
+  <exec_depend>jetbot_motors</exec_depend>
     <export>
     <build_type>ament_cmake</build_type>
   </export>
