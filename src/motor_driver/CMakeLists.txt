@@ -14,7 +14,6 @@ find_package(sensor_msgs REQUIRED)
 
 add_executable(motor_driver_node 
   src/Pca9685.cpp
-  src/Tb6612.cpp
   src/MotorDriverNode.cpp
   src/main.cpp 
 )
