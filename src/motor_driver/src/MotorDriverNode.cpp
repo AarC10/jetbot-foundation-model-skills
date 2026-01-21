@@ -1,11 +1,11 @@
-#include <algorithm>
 #include <motor_driver/MotorDriverNode.hpp>
 
+#include <functional>
 
 MotorDriverNode::MotorDriverNode() : Node("motor_driver_node") {
-    // Set PWM frequency to 1600 Hz (standard for DC motor control on Adafruit Motor HAT)
+    // 1600 khz similar to Motorhat driver from Adafruit
     if (!pca9685.setPwmFrequency(1600)) {
-        RCLCPP_ERROR(this->get_logger(), "Failed to set PWM frequency on PCA9865");
+        RCLCPP_ERROR(this->get_logger(), "Failed to set PWM frequency on PCA9685");
     }
 
     cmdVelSub = this->create_subscription<geometry_msgs::msg::Twist>(
@@ -14,38 +14,21 @@ MotorDriverNode::MotorDriverNode() : Node("motor_driver_node") {
     motorStatusPub = this->create_publisher<geometry_msgs::msg::Twist>("motor_status", 10);
 }
 
-MotorDriverNode::~MotorDriverNode() {}
+MotorDriverNode::~MotorDriverNode() = default;
 
 void MotorDriverNode::cmdVelCallback(const geometry_msgs::msg::Twist::SharedPtr msg) {
-    static constexpr double MAX_SPEED = 1.0;
-    static constexpr double DEAD_BAND = 1e-3;
+    const double velMps = msg->linear.x;
+    const double omegaRps = msg->angular.z;
 
-    auto pwmFromMag = [&](double velocity) -> uint16_t {
-        double mag = std::min(1.0, std::abs(velocity) / MAX_SPEED);
-        return static_cast<uint16_t>(std::lround(mag * static_cast<double>(MAX_PWM)));
-    };
+    const WheelLinear wheels = computeWheelSpeeds(velMps, omegaRps);
+    const double leftNorm = normalizeWheelSpeed(wheels.leftMps, MAX_WHEEL_MPS);
+    const double rightNorm = normalizeWheelSpeed(wheels.rightMps, MAX_WHEEL_MPS);
 
-    auto dirFrom = [&](double v) -> MotorDirection {
-        if (std::abs(v) <= DEAD_BAND) {
-            return STOP;
-            // Alternative if motors should coast instead of stop
-            // return COAST;
-        }
-        return (v > 0.0) ? FORWARD : BACKWARD;
-    };
+    const MotorDirection leftDir = directionFromCmd(leftNorm);
+    const MotorDirection rightDir = directionFromCmd(rightNorm);
 
-    const double linear = msg->linear.x;
-    const double angular = msg->angular.z;
-
-    const WheelLinear wheelSpeeds = computeWheelSpeeds(linear, angular);
-    const double leftCmd = clamp(wheelSpeeds.leftMps);
-    const double rightCmd = clamp(wheelSpeeds.rightMps);
-
-    const MotorDirection leftDir = dirFrom(leftCmd);
-    const MotorDirection rightDir = dirFrom(rightCmd);
-
-    const uint16_t leftPwm = (leftDir == STOP || leftDir == COAST) ? 0 : pwmFromMag(leftCmd);
-    const uint16_t rightPwm = (rightDir == STOP || rightDir == COAST) ? 0 : pwmFromMag(rightCmd);
+    const uint16_t leftPwm = (leftDir == STOP || leftDir == COAST) ? 0 : pwmFromNormalized(leftNorm);
+    const uint16_t rightPwm = (rightDir == STOP || rightDir == COAST) ? 0 : pwmFromNormalized(rightNorm);
 
     if (!setDirection(leftDir, leftMotor)) {
         RCLCPP_ERROR(this->get_logger(), "Failed to set direction for left motor");
@@ -59,29 +42,27 @@ void MotorDriverNode::cmdVelCallback(const geometry_msgs::msg::Twist::SharedPtr 
         RCLCPP_ERROR(this->get_logger(), "Failed to set PWM for right motor");
     }
 
-    // Publish normalized motor speeds ([-1, 1] range) for feedback
-    geometry_msgs::msg::Twist statusMsg;
-    statusMsg.linear.x = normalizeWheelSpeed(leftCmd, MAX_WHEEL_MPS);
-    statusMsg.angular.z = normalizeWheelSpeed(rightCmd, MAX_WHEEL_MPS);
-    motorStatusPub->publish(statusMsg);
+    geometry_msgs::msg::Twist status;
+    status.linear.x = wheels.leftMps;
+    status.angular.z = wheels.rightMps;
+    motorStatusPub->publish(status);
 }
 
-bool MotorDriverNode::setDirection(const MotorDirection direction, const MotorChannels &motor) {
-    auto it = motorDirectionMap.find(direction);
+bool MotorDriverNode::setDirection(MotorDirection direction, const MotorChannels &motor) {
+    const auto it = motorDirectionMap.find(direction);
     if (it == motorDirectionMap.end()) {
         RCLCPP_ERROR(this->get_logger(), "Invalid motor direction");
         return false;
     }
 
-    const MotorDirectionValues &values = it->second;
+    const MotorDirectionBits &bits = it->second;
 
-    if (!pca9685.setPwm(motor.analogIn1, 0, values.in1)) {
-        RCLCPP_ERROR(this->get_logger(), "Failed to set IN1 PWM for motor");
+    if (!pca9685.setPin(motor.analogIn1, bits.in1High)) {
+        RCLCPP_ERROR(this->get_logger(), "Failed to set IN1 for motor");
         return false;
     }
-
-    if (!pca9685.setPwm(motor.analogIn2, 0, values.in2)) {
-        RCLCPP_ERROR(this->get_logger(), "Failed to set IN2 PWM for motor");
+    if (!pca9685.setPin(motor.analogIn2, bits.in2High)) {
+        RCLCPP_ERROR(this->get_logger(), "Failed to set IN2 for motor");
         return false;
     }
 
