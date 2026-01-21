@@ -41,10 +41,10 @@ private:
 
   // Hardcoding for now since this is limited by Adafruit Motor HAT
   // Might need to swap or use 8, 9, 10 and 11, 12, 13 for other side
-  const MotorChannels leftMotorChannel = {4, 3, 2};
-  const MotorChannels rightMotorChannel = {5, 6, 7};
+  const MotorChannels leftMotor = {4, 3, 2};
+  const MotorChannels rightMotor = {5, 6, 7};
 
   void cmdVelCallback(const geometry_msgs::msg::Twist::SharedPtr msg);
 
-  bool setDirection(const MotorDirection direction, const MotorChannels motor);
+  bool setDirection(const MotorDirection direction, const MotorChannels &motor);
 };
