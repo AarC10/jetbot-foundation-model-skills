@@ -1,6 +1,5 @@
 #pragma once
 
-#include <algorithm>
 #include <cmath>
 #include <cstdint>
 #include <map>
@@ -24,12 +23,13 @@ class MotorDriverNode : public rclcpp::Node {
 
     static constexpr double DEAD_BAND = 1e-3;
 
+    enum MotorDirection { FORWARD, BACKWARD, COAST, STOP };
+
     struct WheelLinear {
         double leftMps;
         double rightMps;
     };
 
-    enum MotorDirection { FORWARD, BACKWARD, COAST, STOP };
 
     struct MotorChannels {
         uint8_t analogIn1;
@@ -61,20 +61,22 @@ class MotorDriverNode : public rclcpp::Node {
 
     void cmdVelCallback(const geometry_msgs::msg::Twist::SharedPtr msg);
 
-    bool setDirection(MotorDirection direction, const MotorChannels &motor);
+    bool setDirection(const MotorDirection direction, const MotorChannels &motor);
 
-    static inline WheelLinear computeWheelSpeeds(double velMps, double omegaRps) {
+    static inline WheelLinear computeWheelSpeeds(const double velMps, const double omegaRps) {
         const double half = TRACK_WIDTH_M * 0.5;
         return {.leftMps = velMps - (omegaRps * half), .rightMps = velMps + (omegaRps * half)};
     }
 
-    static inline double normalizeWheelSpeed(double wheelMps, double maxWheelMps) {
-        if (maxWheelMps <= 0.0)
+    static inline double normalizeWheelSpeed(const double wheelMps, const double maxWheelMps) {
+        if (maxWheelMps <= 0.0) {
             return 0.0;
+        }
+
         return std::clamp(wheelMps / maxWheelMps, -1.0, 1.0);
     }
 
-    static inline MotorDirection directionFromCmd(double cmdNorm) {
+    static inline MotorDirection directionFromCmd(const double cmdNorm) {
         if (std::abs(cmdNorm) <= DEAD_BAND) {
             return STOP;
         }
@@ -82,7 +84,7 @@ class MotorDriverNode : public rclcpp::Node {
         return (cmdNorm > 0.0) ? FORWARD : BACKWARD;
     }
 
-    static inline uint16_t pwmFromNormalized(double cmdNorm) {
+    static inline uint16_t pwmFromNormalized(const double cmdNorm) {
         const double mag = std::clamp(std::abs(cmdNorm), 0.0, 1.0);
         return static_cast<uint16_t>(std::lround(mag * static_cast<double>(MAX_PWM)));
     }
