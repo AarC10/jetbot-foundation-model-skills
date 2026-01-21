@@ -65,7 +65,7 @@ class MotorNode : public rclcpp::Node {
 
     static inline WheelLinear computeWheelSpeeds(const double velMps, const double omegaRps) {
         const double half = TRACK_WIDTH_M * 0.5;
-        return {.leftMps = velMps - (omegaRps * half), .rightMps = velMps + (omegaRps * half)};
+        return WheelLinear{velMps - (omegaRps * half), velMps + (omegaRps * half)};
     }
 
     static inline double normalizeWheelSpeed(const double wheelMps, const double maxWheelMps) {
