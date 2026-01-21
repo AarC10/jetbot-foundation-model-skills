@@ -13,6 +13,7 @@ class MotorDriverNode : public rclcpp::Node {
   private:
     static constexpr double WHEEL_RADIUS_M = 0.065; // 65 mm
     static constexpr double TRACK_WIDTH_M = 0.1; // TODO: Measure Jetbot 3d print
+    static constexpr double MAX_WHEEL_MPS = 2.0; // TODO: Measure max wheel speed at full PWM
 
     static constexpr uint16_t MIN_PWM = 0;
     static constexpr uint16_t MAX_PWM = 4095;
@@ -61,5 +62,9 @@ class MotorDriverNode : public rclcpp::Node {
             .leftMps = velMps - (omegaRps * half),
             .rightMps = velMps + (omegaRps * half)
         };
+    }
+
+    double normalizeWheelSpeed(double wheelMps, double maxWheelMps) {
+        return std::clamp(wheelMps / maxWheelMps, -1.0, 1.0);
     }
 };

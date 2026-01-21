@@ -1,8 +1,11 @@
+#include <algorithm>
 #include <motor_driver/MotorDriverNode.hpp>
 
+
 MotorDriverNode::MotorDriverNode() : Node("motor_driver_node") {
-    if (!pca9685.setPwmFrequency(0)) {
-        RCLCPP_ERROR(this->get_logger(), "Failed to set PWM frequency on PCA9685");
+    // Set PWM frequency to 1600 Hz (standard for DC motor control on Adafruit Motor HAT)
+    if (!pca9685.setPwmFrequency(1600)) {
+        RCLCPP_ERROR(this->get_logger(), "Failed to set PWM frequency on PCA9865");
     }
 
     cmdVelSub = this->create_subscription<geometry_msgs::msg::Twist>(
@@ -16,8 +19,6 @@ MotorDriverNode::~MotorDriverNode() {}
 void MotorDriverNode::cmdVelCallback(const geometry_msgs::msg::Twist::SharedPtr msg) {
     static constexpr double MAX_SPEED = 1.0;
     static constexpr double DEAD_BAND = 1e-3;
-
-    auto clamp = [&](double v) -> double { return std::max(-MAX_SPEED, std::min(MAX_SPEED, v)); };
 
     auto pwmFromMag = [&](double velocity) -> uint16_t {
         double mag = std::min(1.0, std::abs(velocity) / MAX_SPEED);
@@ -36,9 +37,9 @@ void MotorDriverNode::cmdVelCallback(const geometry_msgs::msg::Twist::SharedPtr 
     const double linear = msg->linear.x;
     const double angular = msg->angular.z;
 
-    // TODO: Convert m/s to normalized based on 65 mm wheel radius after figuring out max speed
-    const double leftCmd = clamp(linear - angular);
-    const double rightCmd = clamp(linear + angular);
+    const WheelLinear wheelSpeeds = computeWheelSpeeds(linear, angular);
+    const double leftCmd = clamp(wheelSpeeds.leftMps);
+    const double rightCmd = clamp(wheelSpeeds.rightMps);
 
     const MotorDirection leftDir = dirFrom(leftCmd);
     const MotorDirection rightDir = dirFrom(rightCmd);
@@ -58,10 +59,10 @@ void MotorDriverNode::cmdVelCallback(const geometry_msgs::msg::Twist::SharedPtr 
         RCLCPP_ERROR(this->get_logger(), "Failed to set PWM for right motor");
     }
 
-    // Pub actual motor commands
+    // Publish normalized motor speeds ([-1, 1] range) for feedback
     geometry_msgs::msg::Twist statusMsg;
-    statusMsg.linear.x = leftCmd;
-    statusMsg.angular.z = rightCmd;
+    statusMsg.linear.x = normalizeWheelSpeed(leftCmd, MAX_WHEEL_MPS);
+    statusMsg.angular.z = normalizeWheelSpeed(rightCmd, MAX_WHEEL_MPS);
     motorStatusPub->publish(statusMsg);
 }
 
