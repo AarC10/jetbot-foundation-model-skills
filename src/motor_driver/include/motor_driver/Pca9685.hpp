@@ -1,11 +1,11 @@
 #pragma once
 
 #include <cstdint>
-#include <stdint.h>
 #include <stddef.h>
+#include <stdint.h>
 
 class Pca9685 {
-public:
+  public:
     enum Registers {
         ModeOne = 0x00,
         ModeTwo = 0x01,
@@ -38,7 +38,7 @@ public:
     static constexpr uint32_t OSCILLATOR_FREQUENCY = 25'000'000;
 
     Pca9685();
-    
+
     ~Pca9685();
 
     bool setPwmFrequency(uint32_t freqHz);
@@ -49,7 +49,7 @@ public:
 
     bool reset();
 
-private:
+  private:
     uint8_t addr;
     int fd;
     bool initialized = false;
