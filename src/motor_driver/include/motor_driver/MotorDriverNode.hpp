@@ -68,22 +68,22 @@ class MotorDriverNode : public rclcpp::Node {
         return {.leftMps = velMps - (omegaRps * half), .rightMps = velMps + (omegaRps * half)};
     }
 
-    static inline double normalizeWheelSpeed(double wheel_mps, double max_wheel_mps) {
-        if (max_wheel_mps <= 0.0)
+    static inline double normalizeWheelSpeed(double wheelMps, double maxWheelMps) {
+        if (maxWheelMps <= 0.0)
             return 0.0;
-        return std::clamp(wheel_mps / max_wheel_mps, -1.0, 1.0);
+        return std::clamp(wheelMps / maxWheelMps, -1.0, 1.0);
     }
 
-    static inline MotorDirection directionFromCmd(double cmd_norm) {
-        if (std::abs(cmd_norm) <= DEAD_BAND) {
+    static inline MotorDirection directionFromCmd(double cmdNorm) {
+        if (std::abs(cmdNorm) <= DEAD_BAND) {
             return STOP;
         }
-        
-        return (cmd_norm > 0.0) ? FORWARD : BACKWARD;
+
+        return (cmdNorm > 0.0) ? FORWARD : BACKWARD;
     }
 
-    static inline uint16_t pwmFromNormalized(double cmd_norm) {
-        const double mag = std::clamp(std::abs(cmd_norm), 0.0, 1.0);
+    static inline uint16_t pwmFromNormalized(double cmdNorm) {
+        const double mag = std::clamp(std::abs(cmdNorm), 0.0, 1.0);
         return static_cast<uint16_t>(std::lround(mag * static_cast<double>(MAX_PWM)));
     }
 };
