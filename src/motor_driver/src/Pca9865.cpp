@@ -12,14 +12,30 @@ Pca9865::Pca9865() : addr(0x40), fd(-1) {
   fd = open("/dev/i2c-1", O_RDWR);
   if (fd < 0) {
     RCLCPP_ERROR(rclcpp::get_logger("Pca9865"), "Failed to open I2C device");
+    return;
   }
   if (ioctl(fd, I2C_SLAVE, addr) < 0) {
     RCLCPP_ERROR(rclcpp::get_logger("Pca9865"), "Failed to set I2C address");
+    return;
   }
+
+  initialized = true;
 
   reset();
 
-  initialized = true;
+  // Sets MODE1 to enable auto-increment and no subaddresses
+  uint8_t mode1 = 0x01;  // ALLCALL enabled
+  writeI2cRegister(ModeOne, mode1);
+
+  // Set MODE2 to open drain output no inversion
+  uint8_t mode2 = OUTDRV;
+  writeI2cRegister(ModeTwo, mode2);
+}
+
+Pca9865::~Pca9865() {
+  if (fd >= 0) {
+    close(fd);
+  }
 }
 
 bool Pca9865::setPwmFrequency(uint32_t freqHz) {
@@ -32,6 +48,27 @@ bool Pca9865::setPwmFrequency(uint32_t freqHz) {
 
   RCLCPP_DEBUG(rclcpp::get_logger("Pca9865"),
                "Setting PCA9865 prescaler to %u for %u Hz", prescaler, freqHz);
+
+  // Read MODE1
+  uint8_t mode1;
+  if (!readI2cRegister(ModeOne, mode1)) {
+    return false;
+  }
+
+  // Set SLEEP bit to allow prescaler change
+  if (!writeI2cRegister(ModeOne, mode1 | SLEEP)) {
+    return false;
+  }
+
+  // Write prescaler
+  if (!writeI2cRegister(PRESCALE, (uint8_t)prescaler)) {
+    return false;
+  }
+
+  // Clear SLEEP bit to start oscillator
+  if (!writeI2cRegister(ModeOne, mode1 & ~SLEEP)) {
+    return false;
+  }
 
   return true;
 }
@@ -51,7 +88,9 @@ bool Pca9865::setAllPwm(uint16_t on, uint16_t off) {
 }
 
 bool Pca9865::reset() {
-  if (!initialized) {
+  if (fd < 0) {
+    RCLCPP_ERROR(rclcpp::get_logger("Pca9865"),
+                 "I2C device not opened");
     return false;
   }
 
@@ -63,6 +102,8 @@ bool Pca9865::reset() {
                  "Failed to write SWRST to I2C general call address");
     return false;
   }
+
+  ioctl(fd, I2C_SLAVE, addr);
 
   return true;
 }
@@ -131,3 +172,4 @@ bool Pca9865::writeI2cRegisters(uint8_t reg, const uint8_t *buffer,
 
   return true;
 }
+

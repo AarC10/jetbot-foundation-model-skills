@@ -38,6 +38,8 @@ public:
     static constexpr uint32_t OSCILLATOR_FREQUENCY = 25'000'000;
 
     Pca9865();
+    
+    ~Pca9865();
 
     bool setPwmFrequency(uint32_t freqHz);
 
