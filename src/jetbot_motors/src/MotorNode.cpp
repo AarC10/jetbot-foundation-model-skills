@@ -34,12 +34,16 @@ void MotorNode::cmdVelCallback(const geometry_msgs::msg::Twist::SharedPtr msg) {
         RCLCPP_ERROR(this->get_logger(), "Failed to set direction for left motor");
     } else if (!pca9685.setPwm(leftMotor.pwm, 0, leftPwm)) {
         RCLCPP_ERROR(this->get_logger(), "Failed to set PWM for left motor");
+    } else {
+        RCLCPP_DEBUG(this->get_logger(), "Left motor: dir=%d, pwm=%u", static_cast<int>(leftDir), leftPwm);
     }
 
     if (!setDirection(rightDir, rightMotor)) {
         RCLCPP_ERROR(this->get_logger(), "Failed to set direction for right motor");
     } else if (!pca9685.setPwm(rightMotor.pwm, 0, rightPwm)) {
         RCLCPP_ERROR(this->get_logger(), "Failed to set PWM for right motor");
+    } else {
+        RCLCPP_DEBUG(this->get_logger(), "Right motor: dir=%d, pwm=%u", static_cast<int>(rightDir), rightPwm);
     }
 
     geometry_msgs::msg::Twist status;
