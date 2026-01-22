@@ -62,8 +62,4 @@ class Pca9685 {
     bool readI2cRegister(uint8_t reg, uint8_t &value);
 
     bool writeI2cRegister(uint8_t reg, uint8_t value);
-
-    bool readI2cRegisters(uint8_t reg, uint8_t *buffer, size_t length);
-
-    bool writeI2cRegisters(uint8_t reg, const uint8_t *buffer, size_t length);
 };
