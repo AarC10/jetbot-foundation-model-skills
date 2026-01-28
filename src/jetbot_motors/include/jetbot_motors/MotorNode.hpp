@@ -6,7 +6,13 @@
 
 #include <geometry_msgs/msg/twist.hpp>
 #include <jetbot_motors/Pca9685.hpp>
+#include <jetbot_motors/action/drive_distance.hpp>
+#include <jetbot_motors/action/turn_angle.hpp>
 #include <rclcpp/rclcpp.hpp>
+#include <rclcpp_action/rclcpp_action.hpp>
+
+#include <algorithm>
+#include <thread>
 
 class MotorNode : public rclcpp::Node {
   public:
@@ -14,6 +20,11 @@ class MotorNode : public rclcpp::Node {
     ~MotorNode();
 
   private:
+    using DriveDistance = jetbot_motors::action::DriveDistance;
+    using DriveDistanceGoalHandle = rclcpp_action::ServerGoalHandle<DriveDistance>;
+    using TurnAngle = jetbot_motors::action::TurnAngle;
+    using TurnAngleGoalHandle = rclcpp_action::ServerGoalHandle<TurnAngle>;
+
     static constexpr double WHEEL_RADIUS_M = 0.065; // 65 mm
     static constexpr double TRACK_WIDTH_M = 0.1;    // TODO: Measure Jetbot 3d print
     static constexpr double MAX_WHEEL_MPS = 2.0;    // TODO: Measure max wheel speed at full PWM
@@ -22,6 +33,9 @@ class MotorNode : public rclcpp::Node {
     static constexpr uint16_t MAX_PWM = 4095;
 
     static constexpr double DEAD_BAND = 1e-3;
+    static constexpr double DEFAULT_LINEAR_SPEED_MPS = 0.25;
+    static constexpr double DEFAULT_ANGULAR_SPEED_RPS = 1.0;
+    static constexpr double ACTION_LOOP_HZ = 20.0;
 
     enum MotorDirection { FORWARD, BACKWARD, COAST, STOP };
 
@@ -29,7 +43,6 @@ class MotorNode : public rclcpp::Node {
         double leftMps;
         double rightMps;
     };
-
 
     struct MotorChannels {
         uint8_t analogIn1;
@@ -50,7 +63,8 @@ class MotorNode : public rclcpp::Node {
     };
 
     Pca9685 pca9685;
-
+    rclcpp_action::Server<DriveDistance>::SharedPtr driveDistanceServer;
+    rclcpp_action::Server<TurnAngle>::SharedPtr turnAngleServer;
     rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr cmdVelSub;
     rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr motorStatusPub;
 
@@ -62,6 +76,28 @@ class MotorNode : public rclcpp::Node {
     void cmdVelCallback(const geometry_msgs::msg::Twist::SharedPtr msg);
 
     bool setDirection(const MotorDirection direction, const MotorChannels &motor);
+
+    rclcpp_action::GoalResponse handleTurnAngleGoal(const rclcpp_action::GoalUUID &uuid,
+                                                    std::shared_ptr<const TurnAngle::Goal> goal);
+    rclcpp_action::CancelResponse handleTurnAngleCancel(const std::shared_ptr<TurnAngleGoalHandle> goalHandle);
+
+    rclcpp_action::GoalResponse handleDriveDistanceGoal(const rclcpp_action::GoalUUID &uuid,
+                                                        std::shared_ptr<const DriveDistance::Goal> goal);
+    rclcpp_action::CancelResponse handleDriveDistanceCancel(const std::shared_ptr<DriveDistanceGoalHandle> goalHandle);
+
+    void handleDriveDistanceAccepted(const std::shared_ptr<DriveDistanceGoalHandle> goalHandle);
+
+    void executeDriveDistance(const std::shared_ptr<DriveDistanceGoalHandle> goalHandle);
+
+    void handleTurnAngleAccepted(const std::shared_ptr<TurnAngleGoalHandle> goalHandle);
+
+    void executeTurnAngle(const std::shared_ptr<TurnAngleGoalHandle> goalHandle);
+
+    void applyVelocity(const double velMps, const double omegaRps);
+
+    void stopMotors();
+
+    static double resolveSpeed(const double requestedMagnitude, const double defaultMagnitude, const double limit);
 
     static inline WheelLinear computeWheelSpeeds(const double velMps, const double omegaRps) {
         const double half = TRACK_WIDTH_M * 0.5;

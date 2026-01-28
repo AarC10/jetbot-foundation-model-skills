@@ -8,35 +8,54 @@ endif()
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(rclcpp_action REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
+find_package(builtin_interfaces REQUIRED)
+find_package(rosidl_default_generators REQUIRED)
 
-add_executable(jetbot_motor_node 
+rosidl_generate_interfaces(${PROJECT_NAME}
+  "action/DriveDistance.action"
+  "action/TurnAngle.action"
+  DEPENDENCIES builtin_interfaces
+)
+
+ament_export_dependencies(rosidl_default_runtime)
+
+add_executable(jetbot_motors_node 
   src/Pca9685.cpp
   src/MotorNode.cpp
   src/main.cpp 
 )
 
-ament_target_dependencies(jetbot_motor_node
+ament_target_dependencies(jetbot_motors_node
   rclcpp
+  rclcpp_action
   std_msgs
   geometry_msgs
   builtin_interfaces
   sensor_msgs
 )
 
-target_include_directories(jetbot_motor_node PUBLIC
+target_include_directories(jetbot_motors_node PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>
 )
 
-install(TARGETS jetbot_motor_node
+rosidl_target_interfaces(jetbot_motors_node
+  ${PROJECT_NAME} "rosidl_typesupport_cpp")
+
+install(TARGETS jetbot_motors_node
   DESTINATION lib/${PROJECT_NAME}
 )
 
 install(DIRECTORY include/
   DESTINATION include/
+)
+
+install(DIRECTORY action/
+  DESTINATION share/${PROJECT_NAME}
 )
 
 # install(
