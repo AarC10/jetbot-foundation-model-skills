@@ -3,6 +3,7 @@
 #include <chrono>
 #include <functional>
 #include <memory>
+#include <type_traits>
 
 using namespace std::chrono_literals;
 using std::placeholders::_1;
