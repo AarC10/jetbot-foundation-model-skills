@@ -1,0 +1,11 @@
+# Drive forward (positive) or backward (negative) the requested distance in meters.
+float64 distance_m
+# Optional speed magnitude in m/s; if non-positive, the node will use its configured default.
+float64 speed_mps
+---
+# True if the robot finished the motion without cancel/abort.
+bool success
+string message
+---
+# Remaining distance to target in meters. Sign matches the original goal direction.
+float64 remaining_m

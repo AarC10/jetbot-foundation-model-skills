@@ -1,0 +1,11 @@
+# Turn in place by the requested angle in radians. Positive values turn counter-clockwise.
+float64 angle_rad
+# Optional angular speed magnitude in rad/s; if non-positive, the node will use its configured default.
+float64 angular_speed_rps
+---
+# True if the robot finished the rotation without cancel/abort.
+bool success
+string message
+---
+# Remaining angle to target in radians. Sign matches the original goal direction.
+float64 remaining_rad
