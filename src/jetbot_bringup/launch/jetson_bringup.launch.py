@@ -1,8 +1,11 @@
 from launch import LaunchDescription
 from launch_ros.actions import Node
 
+import os
 
 def generate_launch_description() -> LaunchDescription:
+    cwd = os.getcwd()
+
     return LaunchDescription([
         Node(
             package="gscam",
@@ -20,6 +23,7 @@ def generate_launch_description() -> LaunchDescription:
                     "video/x-raw,format=BGR"
                 ),
                 "use_sensor_data_qos": True,
+                "camera_info_url": f"file://{cwd}/ost.yaml", # Note launch from top level of repo
             }],
         ),
 
