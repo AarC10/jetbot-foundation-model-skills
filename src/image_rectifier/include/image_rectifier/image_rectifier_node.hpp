@@ -35,7 +35,7 @@ class ImageRectifierNode : public rclcpp::Node {
     cv::Mat rectificationMatrix;
     cv::Mat projectionMatrix;
     cv::Mat newCamMatrix;
-    cv::Size image_size_;
+    cv::Size imageSize;
 
     // Rectification maps
     cv::Mat map1;

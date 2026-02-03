@@ -102,10 +102,10 @@ void ImageRectifierNode::updateCameraMatrices() {
     }
 
     // Image size
-    image_size_ = cv::Size(latestCamInfo->width, latestCamInfo->height);
+    imageSize = cv::Size(latestCamInfo->width, latestCamInfo->height);
 
     // Compute optimal new camera matrix
-    newCamMatrix = cv::getOptimalNewCameraMatrix(cameraMatrix, distortioncoeffs, image_size_, alpha, image_size_);
+    newCamMatrix = cv::getOptimalNewCameraMatrix(cameraMatrix, distortioncoeffs, imageSize, alpha, imageSize);
 
     RCLCPP_INFO(this->get_logger(), "Camera Matrix (K):");
     RCLCPP_INFO(this->get_logger(), "  [%.2f, %.2f, %.2f]", cameraMatrix.at<double>(0,0), cameraMatrix.at<double>(0,1), cameraMatrix.at<double>(0,2));
@@ -118,13 +118,12 @@ void ImageRectifierNode::updateCameraMatrices() {
     }
 
     // Initialize rectification maps
-    cv::initUndistortRectifyMap(cameraMatrix, distortioncoeffs, rectificationMatrix, newCamMatrix, image_size_,
-                                CV_32F, map1, map2);
-
+    cv::Mat R = cv::Mat::eye(3, 3, CV_64F);
+    cv::fisheye::initUndistortRectifyMap(cameraMatrix, distortioncoeffs, R, newCamMatrix, imageSize, CV_16SC2, map1, map2);
     mapsInitialized = true;
 
-    RCLCPP_INFO(this->get_logger(), "Rectification maps initialized for image size: %dx%d", image_size_.width,
-                image_size_.height);
+    RCLCPP_INFO(this->get_logger(), "Rectification maps initialized for image size: %dx%d", imageSize.width,
+                imageSize.height);
 }
 
 void ImageRectifierNode::imageCallback(const sensor_msgs::msg::Image::ConstSharedPtr &msg) {
@@ -143,12 +142,12 @@ void ImageRectifierNode::imageCallback(const sensor_msgs::msg::Image::ConstShare
     }
 
     // Check if image size matches expected size
-    if (cv_ptr->image.cols != image_size_.width || cv_ptr->image.rows != image_size_.height) {
+    if (cv_ptr->image.cols != imageSize.width || cv_ptr->image.rows != imageSize.height) {
         RCLCPP_WARN_THROTTLE(this->get_logger(), *this->get_clock(), 5000,
                              "Image size mismatch! Expected %dx%d but got %dx%d. Reinitializing maps...",
-                             image_size_.width, image_size_.height, cv_ptr->image.cols, cv_ptr->image.rows);
+                             imageSize.width, imageSize.height, cv_ptr->image.cols, cv_ptr->image.rows);
 
-        image_size_ = cv::Size(cv_ptr->image.cols, cv_ptr->image.rows);
+        imageSize = cv::Size(cv_ptr->image.cols, cv_ptr->image.rows);
         updateCameraMatrices();
     }
 
