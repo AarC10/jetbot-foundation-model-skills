@@ -107,9 +107,19 @@ void ImageRectifierNode::updateCameraMatrices() {
     // Compute optimal new camera matrix
     newCamMatrix = cv::getOptimalNewCameraMatrix(cameraMatrix, distortioncoeffs, image_size_, alpha, image_size_);
 
+    RCLCPP_INFO(this->get_logger(), "Camera Matrix (K):");
+    RCLCPP_INFO(this->get_logger(), "  [%.2f, %.2f, %.2f]", cameraMatrix.at<double>(0,0), cameraMatrix.at<double>(0,1), cameraMatrix.at<double>(0,2));
+    RCLCPP_INFO(this->get_logger(), "  [%.2f, %.2f, %.2f]", cameraMatrix.at<double>(1,0), cameraMatrix.at<double>(1,1), cameraMatrix.at<double>(1,2));
+    RCLCPP_INFO(this->get_logger(), "  [%.2f, %.2f, %.2f]", cameraMatrix.at<double>(2,0), cameraMatrix.at<double>(2,1), cameraMatrix.at<double>(2,2));
+    
+    RCLCPP_INFO(this->get_logger(), "Distortion Coefficients (D): ");
+    for (size_t i = 0; i < distortioncoeffs.rows; ++i) {
+        RCLCPP_INFO(this->get_logger(), "  d[%zu] = %.6f", i, distortioncoeffs.at<double>(i, 0));
+    }
+
     // Initialize rectification maps
     cv::initUndistortRectifyMap(cameraMatrix, distortioncoeffs, rectificationMatrix, newCamMatrix, image_size_,
-                                CV_32FC1, map1, map2);
+                                CV_32F, map1, map2);
 
     mapsInitialized = true;
 
@@ -142,9 +152,8 @@ void ImageRectifierNode::imageCallback(const sensor_msgs::msg::Image::ConstShare
         updateCameraMatrices();
     }
 
-    // Rectify image
     cv::Mat rectifiedImage;
-    cv::remap(cv_ptr->image, rectifiedImage, map1, map2, cv::INTER_LINEAR);
+    cv::remap(cv_ptr->image, rectifiedImage, map1, map2, cv::INTER_LINEAR, cv::BORDER_REPLICATE);
 
     // Convert back to ROS message
     cv_bridge::CvImage rectified_msg;
@@ -172,10 +181,10 @@ void ImageRectifierNode::imageCallback(const sensor_msgs::msg::Image::ConstShare
         // Identity rectification matrix
         rectified_info->r = {1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0};
 
-        // Update projection matrix
+        // Update projection matrix (3x4)
         for (int i = 0; i < 12; ++i) {
             if (i < 9) {
-                rectified_info->p[i] = newCamMatrix.at<double>(i / 4, i % 4);
+                rectified_info->p[i] = newCamMatrix.at<double>(i / 3, i % 3);
             } else {
                 rectified_info->p[i] = 0.0;
             }
