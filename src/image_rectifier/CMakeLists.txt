@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.8)
+cmake_minimum_required(VERSION 3.10)
 project(image_rectifier)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
@@ -12,6 +12,48 @@ find_package(sensor_msgs REQUIRED)
 find_package(image_transport REQUIRED)
 find_package(cv_bridge REQUIRED)
 find_package(camera_info_manager REQUIRED)
+find_package(OpenCV REQUIRED)
+
+# Create executable
+add_executable(image_rectifier_node
+  src/image_rectifier_node.cpp
+  src/main.cpp
+)
+
+# Include directories
+target_include_directories(image_rectifier_node PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
+  ${OpenCV_INCLUDE_DIRS}
+)
+
+# Link dependencies
+ament_target_dependencies(image_rectifier_node
+  rclcpp
+  sensor_msgs
+  image_transport
+  cv_bridge
+  camera_info_manager
+)
+
+target_link_libraries(image_rectifier_node
+  ${OpenCV_LIBRARIES}
+)
+
+# Install executable
+install(TARGETS image_rectifier_node
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+# Install include directory
+install(DIRECTORY include/
+  DESTINATION include/
+)
+
+# Install launch files
+install(DIRECTORY launch/
+  DESTINATION share/${PROJECT_NAME}/launch
+)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
