@@ -35,4 +35,19 @@ def generate_launch_description() -> LaunchDescription:
             parameters=[
             ],
         ),
+
+        Node(
+            package="image_rectifier",
+            executable="image_rectifier_node",
+            name="image_rectifier",
+            output="screen",
+            parameters=[{
+                "input_image_topic": "/camera/image_raw",
+                "input_camera_info_topic": "/camera/camera_info",
+                "output_image_topic": "/camera/image_rect",
+                "output_camera_info_topic": "/camera/camera_info_rect",
+                "alpha": 0.0,
+                "interpolate": True,
+            }],
+        ),
     ])
