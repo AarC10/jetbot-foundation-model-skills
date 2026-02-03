@@ -28,8 +28,9 @@ ImageRectifierNode::ImageRectifierNode(const rclcpp::NodeOptions &options)
     RCLCPP_INFO(this->get_logger(), "  Output camera info topic: %s", outputCamInfoTopic.c_str());
     RCLCPP_INFO(this->get_logger(), "  Alpha: %.2f", alpha);
     RCLCPP_INFO(this->get_logger(), "  Interpolation: %s", interpolate ? "enabled" : "disabled");
+}
 
-    // Create image transport
+void ImageRectifierNode::initialize() {
     image_transport::ImageTransport it(shared_from_this());
 
     // Create subscribers

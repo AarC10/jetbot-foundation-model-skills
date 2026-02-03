@@ -14,6 +14,7 @@ class ImageRectifierNode : public rclcpp::Node {
   public:
     explicit ImageRectifierNode(const rclcpp::NodeOptions &options = rclcpp::NodeOptions());
     ~ImageRectifierNode() = default;
+    void initialize();
 
   private:
     void imageCallback(const sensor_msgs::msg::Image::ConstSharedPtr &msg);
