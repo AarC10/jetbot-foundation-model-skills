@@ -23,11 +23,11 @@ class ImageRectifierNode : public rclcpp::Node {
 
     // Subscribers
     image_transport::Subscriber imageSub;
-    rclcpp::Subscription<sensor_msgs::msg::CameraInfo>::SharedPtr camera_info_sub_;
+    rclcpp::Subscription<sensor_msgs::msg::CameraInfo>::SharedPtr cameraInfoSub;
 
     // Publishers
-    image_transport::Publisher rectified_image_pub_;
-    rclcpp::Publisher<sensor_msgs::msg::CameraInfo>::SharedPtr rectified_camera_info_pub_;
+    image_transport::Publisher rectifiedImagePublisher;
+    rclcpp::Publisher<sensor_msgs::msg::CameraInfo>::SharedPtr rectifiedCameraInfoPublisher;
 
     // Camera calibration data
     cv::Mat cameraMatrix;
