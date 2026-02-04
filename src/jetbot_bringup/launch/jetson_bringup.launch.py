@@ -13,7 +13,7 @@ def generate_launch_description() -> LaunchDescription:
     return LaunchDescription([
         DeclareLaunchArgument(
             "left_motor_gain",
-            default_value="1.0",
+            default_value="1.13",
             description="Gain multiplier for left motor PWM (must be > 0.0).",
         ),
         DeclareLaunchArgument(
