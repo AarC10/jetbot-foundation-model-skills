@@ -25,7 +25,7 @@ class MotorNode : public rclcpp::Node {
     using TurnAngle = jetbot_motors::action::TurnAngle;
     using TurnAngleGoalHandle = rclcpp_action::ServerGoalHandle<TurnAngle>;
 
-    static constexpr double WHEEL_RADIUS_M = 0.065; // 65 mm
+    static constexpr double WHEEL_RADIUS_M = 0.0325; // 32.5 mm radius (65mm diameter)
     static constexpr double TRACK_WIDTH_M = 0.12;   // 120 mm
     static constexpr double DEFAULT_DISTANCE_SCALE = 1.0; // Calibration factor for distance traveled
 
