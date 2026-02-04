@@ -10,6 +10,7 @@
 
 Pca9685::Pca9685() : addr(0x40), fd(-1) {
     fd = open("/dev/i2c-8", O_RDWR);
+    RCLCPP_INFO(rclcpp::get_logger("Pca9685"), "Attempting to open I2C device /dev/i2c-8");
     if (fd < 0) {
         RCLCPP_ERROR(rclcpp::get_logger("Pca9685"), "Failed to open I2C device");
         return;
@@ -92,6 +93,7 @@ bool Pca9685::setPin(uint8_t channel, bool high) {
 }
 
 bool Pca9685::reset() {
+    RCLCPP_INFO(rclcpp::get_logger("Pca9685"), "Resetting PCA9685 via I2C general call");
     if (fd < 0) {
         RCLCPP_ERROR(rclcpp::get_logger("Pca9685"), "I2C device not opened");
         return false;
@@ -107,6 +109,8 @@ bool Pca9685::reset() {
 
     ioctl(fd, I2C_SLAVE, addr);
 
+
+    RCLCPP_INFO(rclcpp::get_logger("Pca9685"), "PCA9685 reset complete");
     return true;
 }
 
