@@ -31,12 +31,12 @@ def generate_launch_description() -> LaunchDescription:
         ),
         DeclareLaunchArgument(
             "turn_scale_factor",
-            default_value="0.065",
+            default_value="0.22",
             description="Scale for turn duration (increase to turn more).",
         ),
         DeclareLaunchArgument(
             "turn_min_pwm_duty",
-            default_value="0.25",
+            default_value="0.5",
             description="Minimum PWM duty (0-1) to overcome stiction when turning in place.",
         ),
         Node(
