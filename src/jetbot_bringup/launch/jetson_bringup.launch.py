@@ -9,6 +9,7 @@ def generate_launch_description() -> LaunchDescription:
     cwd = os.getcwd()
     left_gain = LaunchConfiguration("left_motor_gain")
     right_gain = LaunchConfiguration("right_motor_gain")
+    velocity_scale = LaunchConfiguration("velocity_scale_factor")
 
     return LaunchDescription([
         DeclareLaunchArgument(
@@ -20,6 +21,11 @@ def generate_launch_description() -> LaunchDescription:
             "right_motor_gain",
             default_value="1.0",
             description="Gain multiplier for right motor PWM (must be > 0.0).",
+        ),
+        DeclareLaunchArgument(
+            "velocity_scale_factor",
+            default_value="1.0",
+            description="Calibration scale for velocity/distance (increase to travel further, must be > 0.0).",
         ),
         Node(
             package="gscam",
@@ -49,6 +55,7 @@ def generate_launch_description() -> LaunchDescription:
             parameters=[{
                 "left_motor_gain": left_gain,
                 "right_motor_gain": right_gain,
+                "velocity_scale_factor": velocity_scale,
             }],
         ),
 
