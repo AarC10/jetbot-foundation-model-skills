@@ -26,7 +26,7 @@ class MotorNode : public rclcpp::Node {
     using TurnAngleGoalHandle = rclcpp_action::ServerGoalHandle<TurnAngle>;
 
     static constexpr double WHEEL_RADIUS_M = 0.065; // 65 mm
-    static constexpr double TRACK_WIDTH_M = 0.1;    // TODO: Measure Jetbot 3d print
+    static constexpr double TRACK_WIDTH_M = 0.12;   // 120 mm
     static constexpr double MAX_WHEEL_MPS = 2.0;    // TODO: Measure max wheel speed at full PWM
 
     static constexpr uint16_t MIN_PWM = 0;
