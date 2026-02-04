@@ -29,6 +29,8 @@ MotorNode::MotorNode() : Node("jetbot_motors_node") {
                                                               std::bind(&MotorNode::handleTurnAngleGoal, this, _1, _2),
                                                               std::bind(&MotorNode::handleTurnAngleCancel, this, _1),
                                                               std::bind(&MotorNode::handleTurnAngleAccepted, this, _1));
+
+    RCLCPP_INFO(this->get_logger(), "MotorNode initialized");
 }
 
 MotorNode::~MotorNode() = default;
