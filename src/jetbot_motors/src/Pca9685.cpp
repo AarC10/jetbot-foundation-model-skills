@@ -9,7 +9,7 @@
 #include <linux/i2c.h>
 
 Pca9685::Pca9685() : addr(0x40), fd(-1) {
-    fd = open("/dev/i2c-1", O_RDWR);
+    fd = open("/dev/i2c-8", O_RDWR);
     if (fd < 0) {
         RCLCPP_ERROR(rclcpp::get_logger("Pca9685"), "Failed to open I2C device");
         return;

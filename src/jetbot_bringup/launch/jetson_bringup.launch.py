@@ -46,7 +46,7 @@ def generate_launch_description() -> LaunchDescription:
                 "input_camera_info_topic": "/camera/camera_info",
                 "output_image_topic": "/camera/image_rect",
                 "output_camera_info_topic": "/camera/camera_info_rect",
-                "alpha": 0.0,
+                "alpha": 0.5,
                 "interpolate": True,
             }],
         ),
