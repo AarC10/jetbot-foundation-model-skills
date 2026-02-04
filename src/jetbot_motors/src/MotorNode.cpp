@@ -89,6 +89,8 @@ bool MotorNode::setDirection(MotorDirection direction, const MotorChannels &moto
         return false;
     }
 
+    RCLCPP_INFO(this->get_logger(), "Set motor direction to %d", static_cast<int>(direction));
+
     return true;
 }
 
@@ -127,6 +129,8 @@ void MotorNode::stopMotors() {
 
     (void)pca9685.setPwm(leftMotor.pwm, 0, 0);
     (void)pca9685.setPwm(rightMotor.pwm, 0, 0);
+
+    RCLCPP_INFO(this->get_logger(), "Motors stopped");
 }
 
 double MotorNode::resolveSpeed(const double requestedMagnitude, const double defaultMagnitude, const double limit) {
