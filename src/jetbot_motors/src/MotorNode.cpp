@@ -10,6 +10,17 @@ using std::placeholders::_1;
 using std::placeholders::_2;
 
 MotorNode::MotorNode() : Node("jetbot_motors_node") {
+    leftMotorGain = this->declare_parameter<double>("left_motor_gain", 1.0);
+    rightMotorGain = this->declare_parameter<double>("right_motor_gain", 1.0);
+
+    if (leftMotorGain <= 0.0 || rightMotorGain <= 0.0) {
+        RCLCPP_WARN(this->get_logger(),
+                    "Motor gains must be > 0.0. Using 1.0 for any invalid gain (left=%.3f, right=%.3f).",
+                    leftMotorGain, rightMotorGain);
+        leftMotorGain = (leftMotorGain > 0.0) ? leftMotorGain : 1.0;
+        rightMotorGain = (rightMotorGain > 0.0) ? rightMotorGain : 1.0;
+    }
+
     if (!pca9685.setPwmFrequency(1000)) {
         RCLCPP_ERROR(this->get_logger(), "Failed to set PWM frequency on PCA9685");
     }
@@ -39,8 +50,8 @@ void MotorNode::cmdVelCallback(const geometry_msgs::msg::Twist::SharedPtr msg) {
     const double omegaRps = msg->angular.z;
 
     const WheelLinear wheels = computeWheelSpeeds(velMps, omegaRps);
-    const double leftNorm = normalizeWheelSpeed(wheels.leftMps, MAX_WHEEL_MPS);
-    const double rightNorm = normalizeWheelSpeed(wheels.rightMps, MAX_WHEEL_MPS);
+    const double leftNorm = applyGain(normalizeWheelSpeed(wheels.leftMps, MAX_WHEEL_MPS), leftMotorGain);
+    const double rightNorm = applyGain(normalizeWheelSpeed(wheels.rightMps, MAX_WHEEL_MPS), rightMotorGain);
 
     const MotorDirection leftDir = directionFromCmd(leftNorm);
     const MotorDirection rightDir = directionFromCmd(rightNorm);
@@ -95,8 +106,8 @@ bool MotorNode::setDirection(MotorDirection direction, const MotorChannels &moto
 
 void MotorNode::applyVelocity(const double velMps, const double omegaRps) {
     const WheelLinear wheels = computeWheelSpeeds(velMps, omegaRps);
-    const double leftNorm = normalizeWheelSpeed(wheels.leftMps, MAX_WHEEL_MPS);
-    const double rightNorm = normalizeWheelSpeed(wheels.rightMps, MAX_WHEEL_MPS);
+    const double leftNorm = applyGain(normalizeWheelSpeed(wheels.leftMps, MAX_WHEEL_MPS), leftMotorGain);
+    const double rightNorm = applyGain(normalizeWheelSpeed(wheels.rightMps, MAX_WHEEL_MPS), rightMotorGain);
 
     const MotorDirection leftDir = directionFromCmd(leftNorm);
     const MotorDirection rightDir = directionFromCmd(rightNorm);

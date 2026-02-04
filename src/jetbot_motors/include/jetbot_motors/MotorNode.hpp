@@ -68,6 +68,9 @@ class MotorNode : public rclcpp::Node {
     rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr cmdVelSub;
     rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr motorStatusPub;
 
+    double leftMotorGain = 1.0;
+    double rightMotorGain = 1.0;
+
     // Hardcoding for now since this is limited by Adafruit Motor HAT
     // Might need to swap or use 8, 9, 10 and 11, 12, 13 for other side
     // const MotorChannels leftMotor = {4, 3, 2};
@@ -112,6 +115,14 @@ class MotorNode : public rclcpp::Node {
         }
 
         return std::clamp(wheelMps / maxWheelMps, -1.0, 1.0);
+    }
+
+    static inline double applyGain(const double cmdNorm, const double gain) {
+        if (gain <= 0.0) {
+            return 0.0;
+        }
+
+        return std::clamp(cmdNorm * gain, -1.0, 1.0);
     }
 
     static inline MotorDirection directionFromCmd(const double cmdNorm) {
