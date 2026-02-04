@@ -12,15 +12,15 @@ using std::placeholders::_2;
 MotorNode::MotorNode() : Node("jetbot_motors_node") {
     leftMotorGain = this->declare_parameter<double>("left_motor_gain", 1.0);
     rightMotorGain = this->declare_parameter<double>("right_motor_gain", 1.0);
-    velocityScale = this->declare_parameter<double>("velocity_scale_factor", DEFAULT_VELOCITY_SCALE);
+    distanceScale = this->declare_parameter<double>("distance_scale_factor", DEFAULT_DISTANCE_SCALE);
 
-    if (leftMotorGain <= 0.0 || rightMotorGain <= 0.0 || velocityScale <= 0.0) {
+    if (leftMotorGain <= 0.0 || rightMotorGain <= 0.0 || distanceScale <= 0.0) {
         RCLCPP_WARN(this->get_logger(),
-                    "Motor params must be > 0.0. Using defaults for invalid values (left=%.3f, right=%.3f, vel_scale=%.3f).",
-                    leftMotorGain, rightMotorGain, velocityScale);
+                    "Motor params must be > 0.0. Using defaults for invalid values (left=%.3f, right=%.3f, dist_scale=%.3f).",
+                    leftMotorGain, rightMotorGain, distanceScale);
         leftMotorGain = (leftMotorGain > 0.0) ? leftMotorGain : 1.0;
         rightMotorGain = (rightMotorGain > 0.0) ? rightMotorGain : 1.0;
-        velocityScale = (velocityScale > 0.0) ? velocityScale : DEFAULT_VELOCITY_SCALE;
+        distanceScale = (distanceScale > 0.0) ? distanceScale : DEFAULT_DISTANCE_SCALE;
     }
 
     if (!pca9685.setPwmFrequency(1000)) {
@@ -52,8 +52,8 @@ void MotorNode::cmdVelCallback(const geometry_msgs::msg::Twist::SharedPtr msg) {
     const double omegaRps = msg->angular.z;
 
     const WheelLinear wheels = computeWheelSpeeds(velMps, omegaRps);
-    const double leftNorm = applyGain(normalizeWheelSpeed(wheels.leftMps * velocityScale, 2.0), leftMotorGain);
-    const double rightNorm = applyGain(normalizeWheelSpeed(wheels.rightMps * velocityScale, 2.0), rightMotorGain);
+    const double leftNorm = applyGain(normalizeWheelSpeed(wheels.leftMps, 2.0), leftMotorGain);
+    const double rightNorm = applyGain(normalizeWheelSpeed(wheels.rightMps, 2.0), rightMotorGain);
 
     const MotorDirection leftDir = directionFromCmd(leftNorm);
     const MotorDirection rightDir = directionFromCmd(rightNorm);
@@ -108,8 +108,8 @@ bool MotorNode::setDirection(MotorDirection direction, const MotorChannels &moto
 
 void MotorNode::applyVelocity(const double velMps, const double omegaRps) {
     const WheelLinear wheels = computeWheelSpeeds(velMps, omegaRps);
-    const double leftNorm = applyGain(normalizeWheelSpeed(wheels.leftMps * velocityScale, 2.0), leftMotorGain);
-    const double rightNorm = applyGain(normalizeWheelSpeed(wheels.rightMps * velocityScale, 2.0), rightMotorGain);
+    const double leftNorm = applyGain(normalizeWheelSpeed(wheels.leftMps, 2.0), leftMotorGain);
+    const double rightNorm = applyGain(normalizeWheelSpeed(wheels.rightMps, 2.0), rightMotorGain);
 
     const MotorDirection leftDir = directionFromCmd(leftNorm);
     const MotorDirection rightDir = directionFromCmd(rightNorm);
@@ -188,7 +188,7 @@ void MotorNode::executeDriveDistance(const std::shared_ptr<DriveDistanceGoalHand
         return;
     }
 
-    const double durationSec = std::abs(distance) / speed;
+    const double durationSec = (std::abs(distance) / speed) * distanceScale;
     rclcpp::Rate rate(ACTION_LOOP_HZ);
     auto feedback = std::make_shared<DriveDistance::Feedback>();
     const auto start = this->get_clock()->now();
@@ -258,7 +258,7 @@ void MotorNode::executeTurnAngle(const std::shared_ptr<TurnAngleGoalHandle> goal
         return;
     }
 
-    const double durationSec = std::abs(angle) / speed;
+    const double durationSec = (std::abs(angle) / speed) * distanceScale;
     rclcpp::Rate rate(ACTION_LOOP_HZ);
     auto feedback = std::make_shared<TurnAngle::Feedback>();
     const auto start = this->get_clock()->now();

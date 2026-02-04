@@ -27,7 +27,7 @@ class MotorNode : public rclcpp::Node {
 
     static constexpr double WHEEL_RADIUS_M = 0.065; // 65 mm
     static constexpr double TRACK_WIDTH_M = 0.12;   // 120 mm
-    static constexpr double DEFAULT_VELOCITY_SCALE = 1.0; // Calibration factor for velocity/distance
+    static constexpr double DEFAULT_DISTANCE_SCALE = 1.0; // Calibration factor for distance traveled
 
     static constexpr uint16_t MIN_PWM = 0;
     static constexpr uint16_t MAX_PWM = 4095;
@@ -70,7 +70,7 @@ class MotorNode : public rclcpp::Node {
 
     double leftMotorGain = 1.0;
     double rightMotorGain = 1.0;
-    double velocityScale = DEFAULT_VELOCITY_SCALE;
+    double distanceScale = DEFAULT_DISTANCE_SCALE;
 
     // Hardcoding for now since this is limited by Adafruit Motor HAT
     // Might need to swap or use 8, 9, 10 and 11, 12, 13 for other side
