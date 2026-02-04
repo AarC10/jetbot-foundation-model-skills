@@ -24,7 +24,7 @@ def generate_launch_description() -> LaunchDescription:
         ),
         DeclareLaunchArgument(
             "distance_scale_factor",
-            default_value="2.7",
+            default_value="3.1",
             description="Calibration scale for travel distance (increase to travel further, must be > 0.0).",
         ),
         Node(
