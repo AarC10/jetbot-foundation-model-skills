@@ -28,6 +28,7 @@ class MotorNode : public rclcpp::Node {
     static constexpr double WHEEL_RADIUS_M = 0.0325; // 32.5 mm radius (65mm diameter)
     static constexpr double TRACK_WIDTH_M = 0.12;   // 120 mm
     static constexpr double DEFAULT_DISTANCE_SCALE = 1.0; // Calibration factor for distance traveled
+    static constexpr double DEFAULT_TURN_PWM_MIN = 0.15;  // Minimum duty (0-1) to overcome stiction when turning
 
     static constexpr uint16_t MIN_PWM = 0;
     static constexpr uint16_t MAX_PWM = 4095;
@@ -71,6 +72,7 @@ class MotorNode : public rclcpp::Node {
     double leftMotorGain = 1.0;
     double rightMotorGain = 1.0;
     double distanceScale = DEFAULT_DISTANCE_SCALE;
+    double turnPwmMin = DEFAULT_TURN_PWM_MIN;
 
     // Hardcoding for now since this is limited by Adafruit Motor HAT
     // Might need to swap or use 8, 9, 10 and 11, 12, 13 for other side
@@ -134,8 +136,14 @@ class MotorNode : public rclcpp::Node {
         return (cmdNorm > 0.0) ? FORWARD : BACKWARD;
     }
 
-    static inline uint16_t pwmFromNormalized(const double cmdNorm) {
-        const double mag = std::clamp(std::abs(cmdNorm), 0.0, 1.0);
-        return static_cast<uint16_t>(std::lround(mag * static_cast<double>(MAX_PWM)));
+    static inline uint16_t pwmFromNormalized(const double cmdNorm, const double minDuty) {
+        double duty = std::clamp(std::abs(cmdNorm), 0.0, 1.0);
+        const double floorDuty = std::clamp(minDuty, 0.0, 1.0);
+
+        if (duty > 0.0 && duty < floorDuty) {
+            duty = floorDuty;
+        }
+
+        return static_cast<uint16_t>(std::lround(duty * static_cast<double>(MAX_PWM)));
     }
 };

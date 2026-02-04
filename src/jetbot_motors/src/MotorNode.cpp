@@ -13,14 +13,16 @@ MotorNode::MotorNode() : Node("jetbot_motors_node") {
     leftMotorGain = this->declare_parameter<double>("left_motor_gain", 1.0);
     rightMotorGain = this->declare_parameter<double>("right_motor_gain", 1.0);
     distanceScale = this->declare_parameter<double>("distance_scale_factor", DEFAULT_DISTANCE_SCALE);
+    turnPwmMin = this->declare_parameter<double>("turn_min_pwm_duty", DEFAULT_TURN_PWM_MIN);
 
-    if (leftMotorGain <= 0.0 || rightMotorGain <= 0.0 || distanceScale <= 0.0) {
+    if (leftMotorGain <= 0.0 || rightMotorGain <= 0.0 || distanceScale <= 0.0 || turnPwmMin < 0.0) {
         RCLCPP_WARN(this->get_logger(),
-                    "Motor params must be > 0.0. Using defaults for invalid values (left=%.3f, right=%.3f, dist_scale=%.3f).",
-                    leftMotorGain, rightMotorGain, distanceScale);
+                    "Motor params must be > 0.0. Using defaults for invalid values (left=%.3f, right=%.3f, dist_scale=%.3f, turn_min=%.3f).",
+                    leftMotorGain, rightMotorGain, distanceScale, turnPwmMin);
         leftMotorGain = (leftMotorGain > 0.0) ? leftMotorGain : 1.0;
         rightMotorGain = (rightMotorGain > 0.0) ? rightMotorGain : 1.0;
         distanceScale = (distanceScale > 0.0) ? distanceScale : DEFAULT_DISTANCE_SCALE;
+        turnPwmMin = (turnPwmMin >= 0.0) ? turnPwmMin : DEFAULT_TURN_PWM_MIN;
     }
 
     if (!pca9685.setPwmFrequency(1000)) {
@@ -52,14 +54,16 @@ void MotorNode::cmdVelCallback(const geometry_msgs::msg::Twist::SharedPtr msg) {
     const double omegaRps = msg->angular.z;
 
     const WheelLinear wheels = computeWheelSpeeds(velMps, omegaRps);
+    const bool turningInPlace = (std::abs(velMps) <= DEAD_BAND) && (std::abs(omegaRps) > DEAD_BAND);
+    const double dutyFloor = turningInPlace ? turnPwmMin : 0.0;
     const double leftNorm = applyGain(normalizeWheelSpeed(wheels.leftMps, 2.0), leftMotorGain);
     const double rightNorm = applyGain(normalizeWheelSpeed(wheels.rightMps, 2.0), rightMotorGain);
 
     const MotorDirection leftDir = directionFromCmd(leftNorm);
     const MotorDirection rightDir = directionFromCmd(rightNorm);
 
-    const uint16_t leftPwm = (leftDir == STOP || leftDir == COAST) ? 0 : pwmFromNormalized(leftNorm);
-    const uint16_t rightPwm = (rightDir == STOP || rightDir == COAST) ? 0 : pwmFromNormalized(rightNorm);
+    const uint16_t leftPwm = (leftDir == STOP || leftDir == COAST) ? 0 : pwmFromNormalized(leftNorm, dutyFloor);
+    const uint16_t rightPwm = (rightDir == STOP || rightDir == COAST) ? 0 : pwmFromNormalized(rightNorm, dutyFloor);
 
     if (!setDirection(leftDir, leftMotor)) {
         RCLCPP_ERROR(this->get_logger(), "Failed to set direction for left motor");
@@ -108,14 +112,16 @@ bool MotorNode::setDirection(MotorDirection direction, const MotorChannels &moto
 
 void MotorNode::applyVelocity(const double velMps, const double omegaRps) {
     const WheelLinear wheels = computeWheelSpeeds(velMps, omegaRps);
+    const bool turningInPlace = (std::abs(velMps) <= DEAD_BAND) && (std::abs(omegaRps) > DEAD_BAND);
+    const double dutyFloor = turningInPlace ? turnPwmMin : 0.0;
     const double leftNorm = applyGain(normalizeWheelSpeed(wheels.leftMps, 2.0), leftMotorGain);
     const double rightNorm = applyGain(normalizeWheelSpeed(wheels.rightMps, 2.0), rightMotorGain);
 
     const MotorDirection leftDir = directionFromCmd(leftNorm);
     const MotorDirection rightDir = directionFromCmd(rightNorm);
 
-    const uint16_t leftPwm = (leftDir == STOP || leftDir == COAST) ? 0 : pwmFromNormalized(leftNorm);
-    const uint16_t rightPwm = (rightDir == STOP || rightDir == COAST) ? 0 : pwmFromNormalized(rightNorm);
+    const uint16_t leftPwm = (leftDir == STOP || leftDir == COAST) ? 0 : pwmFromNormalized(leftNorm, dutyFloor);
+    const uint16_t rightPwm = (rightDir == STOP || rightDir == COAST) ? 0 : pwmFromNormalized(rightNorm, dutyFloor);
 
     if (!setDirection(leftDir, leftMotor)) {
         RCLCPP_ERROR(this->get_logger(), "Failed to set direction for left motor");
