@@ -34,7 +34,7 @@ def generate_launch_description() -> LaunchDescription:
         ),
         DeclareLaunchArgument(
             "turn_min_pwm_duty",
-            default_value="0.25",
+            default_value="0.22",
             description="Minimum PWM duty (0-1) to overcome stiction when turning in place.",
         ),
         Node(
