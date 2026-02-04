@@ -29,6 +29,7 @@ class MotorNode : public rclcpp::Node {
     static constexpr double TRACK_WIDTH_M = 0.12;   // 120 mm
     static constexpr double DEFAULT_DISTANCE_SCALE = 1.0; // Calibration factor for distance traveled
     static constexpr double DEFAULT_TURN_PWM_MIN = 0.15;  // Minimum duty (0-1) to overcome stiction when turning
+    static constexpr double DEFAULT_TURN_SCALE = 1.0; // Calibration factor for turn duration
 
     static constexpr uint16_t MIN_PWM = 0;
     static constexpr uint16_t MAX_PWM = 4095;
@@ -72,6 +73,7 @@ class MotorNode : public rclcpp::Node {
     double leftMotorGain = 1.0;
     double rightMotorGain = 1.0;
     double distanceScale = DEFAULT_DISTANCE_SCALE;
+    double turnScale = DEFAULT_TURN_SCALE;
     double turnPwmMin = DEFAULT_TURN_PWM_MIN;
 
     // Hardcoding for now since this is limited by Adafruit Motor HAT
