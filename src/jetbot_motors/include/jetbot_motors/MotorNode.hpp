@@ -70,8 +70,10 @@ class MotorNode : public rclcpp::Node {
 
     // Hardcoding for now since this is limited by Adafruit Motor HAT
     // Might need to swap or use 8, 9, 10 and 11, 12, 13 for other side
-    const MotorChannels leftMotor = {4, 3, 2};
-    const MotorChannels rightMotor = {5, 6, 7};
+    // const MotorChannels leftMotor = {4, 3, 2};
+    // const MotorChannels rightMotor = {5, 6, 7};
+    const MotorChannels leftMotor = {10, 9, 8};
+    const MotorChannels rightMotor = {11, 12, 13};
 
     void cmdVelCallback(const geometry_msgs::msg::Twist::SharedPtr msg);
 
