@@ -10,8 +10,7 @@ using std::placeholders::_1;
 using std::placeholders::_2;
 
 MotorNode::MotorNode() : Node("jetbot_motors_node") {
-    // 1600 khz similar to Motorhat driver from Adafruit
-    if (!pca9685.setPwmFrequency(1600)) {
+    if (!pca9685.setPwmFrequency(1000)) {
         RCLCPP_ERROR(this->get_logger(), "Failed to set PWM frequency on PCA9685");
     }
 

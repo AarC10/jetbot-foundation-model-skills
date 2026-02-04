@@ -52,8 +52,8 @@ class Pca9685 {
     bool reset();
 
   private:
-    static constexpr uint16_t FULL_OFF = 0;
-    static constexpr uint16_t FULL_ON = 4095;
+    static constexpr uint8_t FULL_ON_BIT = 0x10;  // Bit 4 of LEDn_ON_H
+    static constexpr uint8_t FULL_OFF_BIT = 0x10; // Bit 4 of LEDn_OFF_H
 
     uint8_t addr;
     int fd;
