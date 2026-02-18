@@ -10,7 +10,7 @@ ImageRectifierNode::ImageRectifierNode(const rclcpp::NodeOptions &options)
     this->declare_parameter<std::string>("input_camera_info_topic", "camera_info");
     this->declare_parameter<std::string>("output_image_topic", "image_rect");
     this->declare_parameter<std::string>("output_camera_info_topic", "camera_info_rect");
-    this->declare_parameter<double>("alpha", 1.0);
+    this->declare_parameter<double>("alpha", 0.5);
     this->declare_parameter<bool>("interpolate", true);
 
     // Get parameters
@@ -171,7 +171,7 @@ void ImageRectifierNode::imageCallback(const sensor_msgs::msg::Image::ConstShare
     }
 
     cv::Mat rectifiedImage;
-    cv::remap(cv_ptr->image, rectifiedImage, map1, map2, cv::INTER_LINEAR, cv::BORDER_REPLICATE);
+    cv::remap(cv_ptr->image, rectifiedImage, map1, map2, cv::INTER_LINEAR, cv::BORDER_CONSTANT);
 
     // Convert back to ROS message
     cv_bridge::CvImage rectified_msg;
