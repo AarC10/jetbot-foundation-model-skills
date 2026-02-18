@@ -10,7 +10,7 @@ ImageRectifierNode::ImageRectifierNode(const rclcpp::NodeOptions &options)
     this->declare_parameter<std::string>("input_camera_info_topic", "camera_info");
     this->declare_parameter<std::string>("output_image_topic", "image_rect");
     this->declare_parameter<std::string>("output_camera_info_topic", "camera_info_rect");
-    this->declare_parameter<double>("alpha", 0.0);
+    this->declare_parameter<double>("alpha", 1.0);
     this->declare_parameter<bool>("interpolate", true);
 
     // Get parameters
@@ -105,7 +105,9 @@ void ImageRectifierNode::updateCameraMatrices() {
     imageSize = cv::Size(latestCamInfo->width, latestCamInfo->height);
 
     // Compute optimal new camera matrix
-    newCamMatrix = cv::getOptimalNewCameraMatrix(cameraMatrix, distortioncoeffs, imageSize, alpha, imageSize);
+    cv::Mat R = cv::Mat::eye(3, 3, CV_64F);
+    cv::fisheye::estimateNewCameraMatrixForUndistortRectify(cameraMatrix, distortioncoeffs, imageSize, R,
+                                                                           newCamMatrix, alpha);
 
     RCLCPP_INFO(this->get_logger(), "Camera Matrix (K):");
     RCLCPP_INFO(this->get_logger(), "  [%.2f, %.2f, %.2f]", cameraMatrix.at<double>(0,0), cameraMatrix.at<double>(0,1), cameraMatrix.at<double>(0,2));
@@ -118,7 +120,6 @@ void ImageRectifierNode::updateCameraMatrices() {
     }
 
     // Initialize rectification maps
-    cv::Mat R = cv::Mat::eye(3, 3, CV_64F);
     cv::fisheye::initUndistortRectifyMap(cameraMatrix, distortioncoeffs, R, newCamMatrix, imageSize, CV_16SC2, map1, map2);
     mapsInitialized = true;
 
@@ -175,20 +176,20 @@ void ImageRectifierNode::imageCallback(const sensor_msgs::msg::Image::ConstShare
 
         // Rectified image has no distortion
         rectified_info->d.clear();
-        rectified_info->d.resize(5, 0.0);
+        rectified_info->d.resize(4, 0.0);
 
         // Identity rectification matrix
         rectified_info->r = {1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0};
 
         // Update projection matrix (3x4)
-        for (int i = 0; i < 12; ++i) {
-            if (i < 9) {
-                rectified_info->p[i] = newCamMatrix.at<double>(i / 3, i % 3);
-            } else {
-                rectified_info->p[i] = 0.0;
+        for (int i = 0; i < 3; ++i) {
+            for (int j = 0; j < 3; ++j) {
+                rectified_info->p[i * 4 + j] = newCamMatrix.at<double>(i, j);
             }
+            rectified_info->p[i * 4 + 3] = 0.0;
         }
 
         rectifiedCameraInfoPublisher->publish(*rectified_info);
     }
 }
+
