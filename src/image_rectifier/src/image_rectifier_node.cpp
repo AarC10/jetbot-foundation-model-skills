@@ -33,21 +33,39 @@ ImageRectifierNode::ImageRectifierNode(const rclcpp::NodeOptions &options)
 void ImageRectifierNode::initialize() {
     image_transport::ImageTransport it(shared_from_this());
 
-    auto sensor_qos = rclcpp::QoS(rclcpp::SensorDataQoS()).keep_last(10);
+    auto sensor_qos = rclcpp::SensorDataQoS().keep_last(10);
 
-    // Create subscribers
-    imageSub =
-        it.subscribe(inputImageTopic, 10, std::bind(&ImageRectifierNode::imageCallback, this, std::placeholders::_1));
+    rmw_qos_profile_t img_qos = rmw_qos_profile_sensor_data; // BEST_EFFORT
+    img_qos.depth = 10;
+
+    transport_hints = std::make_unique<image_transport::TransportHints>(this, "raw");
+
+    rclcpp::SubscriptionOptions sub_opts;
+
+    // Subscribers
+    imageSub = it.subscribe(
+        inputImageTopic,
+        img_qos,
+        [this](sensor_msgs::msg::Image::ConstSharedPtr msg) {
+            this->imageCallback(msg);
+        },
+        nullptr,
+        transport_hints.get(),
+        sub_opts
+    );
+
     cameraInfoSub = this->create_subscription<sensor_msgs::msg::CameraInfo>(
-        inputCameraInfoTopic, sensor_qos, std::bind(&ImageRectifierNode::cameraInfoCallback, this, std::placeholders::_1));
+        inputCameraInfoTopic,
+        sensor_qos,
+        std::bind(&ImageRectifierNode::cameraInfoCallback, this, std::placeholders::_1)
+    );
 
-    // Create publsihers
+
+    // Publsihers
     rectifiedImagePublisher = it.advertise(outputImageTopic, 10);
-    rectifiedCameraInfoPublisher = this->create_publisher<sensor_msgs::msg::CameraInfo>(outputCamInfoTopic, sensor_qos);
-
-    RCLCPP_INFO(this->get_logger(), "Image Rectifier Node initialized successfully");
+    rectifiedCameraInfoPublisher =
+        this->create_publisher<sensor_msgs::msg::CameraInfo>(outputCamInfoTopic, sensor_qos);
 }
-
 void ImageRectifierNode::cameraInfoCallback(const sensor_msgs::msg::CameraInfo::ConstSharedPtr &msg) {
     // Check if camera info has changed
     bool infoChanged = false;

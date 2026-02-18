@@ -2,13 +2,13 @@
 
 #include <cv_bridge/cv_bridge.h>
 #include <image_transport/image_transport.hpp>
+#include <image_transport/transport_hints.hpp>
 #include <memory>
 #include <opencv2/opencv.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/camera_info.hpp>
 #include <sensor_msgs/msg/image.hpp>
 #include <string>
-
 
 class ImageRectifierNode : public rclcpp::Node {
   public:
@@ -20,6 +20,8 @@ class ImageRectifierNode : public rclcpp::Node {
     void imageCallback(const sensor_msgs::msg::Image::ConstSharedPtr &msg);
     void cameraInfoCallback(const sensor_msgs::msg::CameraInfo::ConstSharedPtr &msg);
     void updateCameraMatrices();
+
+    std::unique_ptr<image_transport::TransportHints> transport_hints;
 
     // Subscribers
     image_transport::Subscriber imageSub;
