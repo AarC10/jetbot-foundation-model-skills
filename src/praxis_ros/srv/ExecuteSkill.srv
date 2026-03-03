@@ -1,0 +1,28 @@
+# Request
+# Name of the skill to execute
+string skill_name
+
+# Explicit version to run; 0 means "use latest active version".
+int32 version
+
+# Input parameters as a JSON-encoded dict, e.g. '{"a": 1, "b": 2}'
+string params_json
+
+# Original  request, forwarded to the skill as context
+string user_request
+
+# Hard execution timeout in seconds.  0 means "use skill contract default"
+int32 timeout_seconds
+---
+# Response 
+bool success
+
+# JSON encoded output dict returned by run().  Empty string on failure.
+string result_json
+
+# Populated on failure
+string error
+
+# Execution metadata
+string exec_id
+int32 latency_ms

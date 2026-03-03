@@ -1,0 +1,27 @@
+# Request ---------------------------------------------------------------
+# Natural language description of the skill to generate
+string request
+
+# Optional schema hints in "key:type" format, e.g. ["image:ndarray", "threshold:float"]
+# The LLM fills in anything not provided
+string[] input_hints
+string[] output_hints
+
+# Override reuse sim threshold for this request (0.0 = always
+# generate fresh, 1.0 = only reuse exact matches).  0.0 means "use default".
+float32 reuse_threshold
+---
+# Response
+bool success
+
+# Populated on success
+string version_id
+string skill_name
+string short_desc
+
+# True when an existing skill was reused rather than generated fresh
+bool was_reused
+float32 reuse_similarity
+
+# Populated on failure
+string error
