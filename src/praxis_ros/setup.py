@@ -19,6 +19,7 @@ setup(
     entry_points={
         "console_scripts": [
             "skill_node = praxis_ros.skill_node:main",
+            "praxis_cli = praxis_ros.praxis_cli_node:main",
         ],
     },
 )

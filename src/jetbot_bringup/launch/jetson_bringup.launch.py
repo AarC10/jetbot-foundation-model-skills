@@ -87,4 +87,18 @@ def generate_launch_description() -> LaunchDescription:
                 "interpolate": True,
             }],
         ),
+
+        Node(
+            package="praxis_ros",
+            executable="skill_node",
+            name="praxis_skill_node",
+            output="screen",
+            parameters=[{
+                "llm_provider": "anthropic",
+                "skill_db_path": "/home/jetbot/.praxis/anthropic.db",
+                "skill_dir": "/home/jetbot/.praxis/skills",
+                "reuse_threshold": 0.85,
+                "contract": "ros_python",
+            }],
+        ),
     ])

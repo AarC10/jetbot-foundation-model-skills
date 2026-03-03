@@ -15,6 +15,9 @@
 
   <exec_depend>rclpy</exec_depend>
   <exec_depend>std_msgs</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>cv_bridge</exec_depend>
   <exec_depend>rosidl_default_runtime</exec_depend>
 
   <exec_depend condition="$ROS_VERSION == 2">python3-praxis</exec_depend>

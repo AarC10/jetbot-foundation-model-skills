@@ -43,6 +43,11 @@ RUN wget https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cm
 
 RUN rosdep init || true && rosdep update
 
+
+# Yoink Praxis lib
+RUN git clone https://github.com/AarC10/Praxis.git /opt/praxis \
+    && pip3 install /opt/praxis
+    
 # Workspace skeleton
 RUN mkdir -p ${COLCON_WS}/src
 WORKDIR ${COLCON_WS}

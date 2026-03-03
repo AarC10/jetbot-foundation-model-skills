@@ -1,5 +1,9 @@
-cmake_minimum_required(VERSION 3.8)
+cmake_minimum_required(VERSION 3.10)
 project(praxis_ros)
+
+if(POLICY CMP0148)
+  cmake_policy(SET CMP0148 OLD)
+endif()
 
 find_package(ament_cmake REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
@@ -9,11 +13,9 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/ExecuteSkill.srv"
 )
 
-find_package(ament_cmake_python REQUIRED)
-ament_python_install_package(${PROJECT_NAME})
-
 install(PROGRAMS
   praxis_ros/skill_node.py
+  praxis_ros/praxis_cli_node.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
